@@ -1,0 +1,14 @@
+https://adstransparency.google.com/_/logging?authuser=
+https://adstransparency.google.com/anji/_/rpc/SearchService/SearchCreatives?authuser=
+https://adstransparency.google.com/anji/_/rpc/SearchService/SearchSuggestions?authuser=
+https://adstransparency.google.com/anji/_/rpc/TfaarAdvertiserService/GetAdvertiserDunsMapping?authuser=
+https://displayads-formats.googleusercontent.com/ads/preview/...
+https://displayads-formats.googleusercontent.com/ads/preview/content.j...
+https://displayads-formats.googleusercontent.com/ads/preview/content.js?client
+https://ogads-pa.clients6.google.com/$rpc/google.internal.onegoogle.asyncdata.v1.AsyncDataService/GetAsyncData
+https://tpc.googlesyndication.com/archive/simgad/1...
+https://tpc.googlesyndication.com/archive/simgad/12539591131643340350
+https://tpc.googlesyndication.com/archive/simgad/16016765878430893178
+https://tpc.googlesyndication.com/archive/simgad/17500713929147822658
+https://tpc.googlesyndication.com/archive/simgad/5878380301894951003
+https://tpc.googlesyndication.com/archive/simgad/7...

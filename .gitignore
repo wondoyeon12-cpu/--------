@@ -1,0 +1,41 @@
+# 보안 관련 (절대 업로드 불가)
+.env
+secrets.toml
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# Python 임시 파일
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Node.js 패키지 (용량 폭탄 방지)
+node_modules/
+dist/
+build/
+.npm/
+
+# IDE 설정
+.idea/
+.vscode/
+
+# 임시 생성 파일 및 이미지
+*.log
+*temp*.jpg
+*temp*.png
+temp/
+.tmp/
+__temp__/
+
+# OS System Files
+.DS_Store
+Thumbs.db
+
+# Live status files
+pixel_office/agent_status.json
+

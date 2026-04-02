@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>손절 타이머</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=VT323&display=swap" rel="stylesheet">
+    <!-- html2canvas for capturing result -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="noise-bg"></div>
+    
+    <!-- Main UI Container -->
+    <main class="container" id="main-ui">
+        <h1 class="glitch-title" data-text="너희... 언제 손절할지 궁금해?">
+            <span class="glitch-line">너희...</span><br>
+            <span class="glitch-line">언제 손절할지</span><br>
+            <span class="glitch-line">궁금해?</span>
+        </h1>
+        
+        <div class="upload-wrapper">
+            <div class="upload-section" id="drop-zone">
+                <!-- Allow multiple files -->
+                <input type="file" id="file-input" accept="image/*" multiple hidden>
+                <div class="upload-content" id="upload-content">
+                    <svg class="broken-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        <path d="M12 5l-2 5h4l-3 6"/>
+                    </svg>
+                    <div class="plus-icon">+</div>
+                </div>
+                <!-- Multi-thumbnail listing -->
+                <div id="thumbnail-list" class="thumbnail-list hidden"></div>
+            </div>
+            <div class="upload-text-below">카톡 스샷 올리기<br>(최대 5장) 🩸</div>
+        </div>
+
+        <button class="puffy-btn" id="analyze-btn">
+            [관계 사망 선고받기]
+        </button>
+
+        <p class="matrix-text">텍스트 추출 안 함. 3초 컷.</p>
+    </main>
+
+    <!-- Stage 4: Scanning Overlay -->
+    <div id="scanner-ui" class="hidden fullscreen-overlay">
+        <div class="scanner-image-container margin-bottom">
+            <img id="scanner-preview" src="" alt="Scanning...">
+            <div class="laser-beam"></div>
+        </div>
+        <p id="loading-text" class="glitch-loading blink-neon">상대방의 기싸움 지수 파악 중...</p>
+    </div>
+
+    <!-- Mock AdMob Interstitial -->
+    <div id="mock-ad-modal" class="hidden fullscreen-overlay">
+        <div class="ad-content">
+            <button id="close-ad-btn">x</button>
+            <h2 class="ad-headline">🚨 긴급 입수! 연애 고수들의 비밀 기술 대.공.개! 🚨</h2>
+            <p>이것만 알면 읽씹 당할 일은 절대 없다!</p>
+            <div class="ad-image-placeholder">연애술사 VIP 코스 즉시 가입</div>
+            <p class="ad-footer">Google AdMob 테스트 광고</p>
+        </div>
+    </div>
+
+    <!-- Stage 5: Viral Result Page (Instagram Story 9:16 Ratio) -->
+    <div id="result-ui" class="hidden fullscreen-overlay scrollable-overlay">
+        <div id="capture-area" class="result-card">
+            <h1 class="result-title">💣 사망 진단서 💣</h1>
+            <div class="stat-box">
+                <div class="stat"><span class="label">관계 온도</span><br><span id="res-temp" class="value bad-color">-100°C</span></div>
+                <div class="stat"><span class="label">기싸움 게이지</span><br><span id="res-power" class="value">99%</span></div>
+            </div>
+            
+            <div class="d-day-box">
+                <h3>예상 손절 시점</h3>
+                <div id="res-dday" class="d-day-text">D-DAY</div>
+            </div>
+
+            <div class="insight-container">
+                <h3 class="insight-title">⚡ AI 심층 관계 보고서 ⚡</h3>
+                <div class="insight-box" id="res-insight">
+                    <!-- Insights injected here -->
+                </div>
+            </div>
+            
+            <div class="fact-bomb-box" id="res-facts">
+                <!-- Fact bombs injected here -->
+            </div>
+            
+            <div class="watermark">손절 타이머 : 인간관계 사망 선고</div>
+        </div>
+
+        <div class="result-actions">
+            <button class="puffy-btn action-capture glitch-hover" id="capture-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 5px;">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg> 이 굴욕 박제하기
+            </button>
+            <button class="puffy-btn retry-btn" id="retry-btn">다시 하기</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="tick-sound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/alarms/mechanical_clock_tick.ogg" type="audio/ogg">
+    </audio>
+    <audio id="boom-sound" preload="auto">
+        <source src="https://actions.google.com/sounds/v1/weapons/explosion_on_metal_03.ogg" type="audio/ogg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

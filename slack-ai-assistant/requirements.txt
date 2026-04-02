@@ -1,0 +1,5 @@
+slack_bolt
+openai
+notion-client
+schedule
+python-dotenv

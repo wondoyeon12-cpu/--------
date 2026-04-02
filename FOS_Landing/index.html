@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOS - 브랜드 맞춤 운영체계 설계</title>
+    <!-- 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <!-- 네비게이션 헤더 -->
+    <header id="main-header">
+        <div class="header-container">
+            <div class="logo-area">
+                <span class="logo-text">FOS</span>
+            </div>
+            <div class="cta-area">
+                <a href="#consult-form" class="btn-primary">무료 상담 신청하기</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Section 1: Hero (네트워크 다이어그램 애니메이션) -->
+        <section id="hero" class="section hero-section">
+            <div class="container hero-container">
+                <div class="hero-text-box">
+                    <h1 class="heading-xl">기능은 다 비슷합니다.<br>그래서 우리는 <br><span class="text-primary">"브랜드 맞춤
+                            운영체계"</span>를<br>설계합니다.</h1>
+                    <p class="text-lead mt-4">
+                        발주, 정산, 재고, 매출... "있다/없다"의 게임은 이미 끝났습니다.<br>
+                        운영이 커질수록 중요한 건 브랜드마다 다른 운영 표준을 시스템에 고정하는 것입니다.
+                    </p>
+                </div>
+
+                <!-- 네트워크 다이어그램 UI -->
+                <div class="network-diagram">
+                    <!-- 중앙 로고 -->
+                    <div class="center-node">
+                        <span class="logo-text-large">FOS</span>
+                    </div>
+                    <!-- 연결선들 -->
+                    <div class="connection-lines">
+                        <div class="line line-1"></div>
+                        <div class="line line-2"></div>
+                        <div class="line line-3"></div>
+                        <div class="line line-4"></div>
+                        <div class="line line-5"></div>
+                    </div>
+                    <!-- 위성 노드들 -->
+                    <div class="satellite-node node-1">발주</div>
+                    <div class="satellite-node node-2">정산</div>
+                    <div class="satellite-node node-3">재고</div>
+                    <div class="satellite-node node-4">매출</div>
+                    <div class="satellite-node node-5">분석</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 본질 강조 (Mockup) -->
+        <section id="core-value" class="section bg-light">
+            <div class="container text-center">
+                <h2 class="heading-md mb-8">발주/정산/재고 기능?<br>다 있죠. 우리도 있습니다. <br>그러나 그건 <span class="text-primary">중요하지
+                        않습니다.</span></h2>
+                <p class="text-lead mb-8" style="max-width:800px; margin-left:auto; margin-right:auto;">
+                    기능 비교표는 의미가 없습니다. 대부분의 서비스가 유사한 기능을 제공합니다.<br>
+                    <strong>중요한 건 브랜드마다 다른 운영 룰을 시스템으로 녹여내는 것입니다.</strong>
+                </p>
+
+                <!-- Mockup Image Area -->
+                <div class="mockup-container mt-8 relative" style="position: relative; padding-bottom: 60px;">
+                    <!-- Placeholder Desktop Mockup -->
+                    <div class="desktop-mockup shadow-hover rounded-[12px] overflow-hidden mx-auto bg-white border border-slate-200"
+                        style="max-width: 800px; aspect-ratio: 16/9;">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop"
+                            alt="Desktop Dashboard UI Mockup"
+                            style="width:100%; height:100%; object-fit:cover; opacity: 0.8;">
+                    </div>
+                    <!-- Placeholder Mobile Mockup -->
+                    <div class="mobile-mockup absolute shadow-lg rounded-[2rem] overflow-hidden bg-white border-4 border-slate-800"
+                        style="position: absolute; width: 200px; aspect-ratio: 9/16; bottom: 0; right: 15%; z-index: 10;">
+                        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1470&auto=format&fit=crop"
+                            alt="Mobile App UI Mockup" style="width:100%; height:100%; object-fit:cover; opacity: 0.9;">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Operating System Design 전환 -->
+        <section id="os-design" class="section">
+            <div class="container text-center">
+                <h2 class="heading-lg mb-8" style="line-height:1.4;">프랜차이즈 본사의 운영 표준을 설계하고<br>시스템화합니다.</h2>
+
+                <div class="os-diagram mt-8 flex" style="display:flex; flex-direction:column; align-items:center;">
+                    <div class="vendor-box py-4 px-8 border-2"
+                        style="padding:1rem 2rem; border:2px solid var(--color-border); border-radius:8px; color:var(--color-text-muted); font-weight:bold; margin-bottom:1rem; text-decoration: line-through;">
+                        SaaS Vendor
+                    </div>
+                    <div class="arrow-down text-primary text-2xl mb-4"
+                        style="color:var(--color-primary); font-size:1.5rem; margin-bottom:1rem;">
+                        <i class="fa-solid fa-arrow-down"></i>
+                    </div>
+                    <div class="os-box bg-primary text-white py-6 px-12 rounded-xl text-2xl font-black shadow-lg mb-8 transition-transform cursor-pointer"
+                        style="background:var(--color-primary); color:white; padding:1.5rem 3rem; border-radius:12px; font-size:1.5rem; font-weight:900; box-shadow:var(--shadow-lg); transition: transform 0.3s ease; margin-bottom:2rem;">
+                        Operating System Design
+                    </div>
+                </div>
+
+                <p class="text-lead max-w-3xl mx-auto mt-4" style="max-width:768px; margin: 0 auto;">
+                    브랜드가 커질수록 "운영 표준"은 기업의 자산이 됩니다.<br>
+                    우리는 그것을 문서로 끝내지 않고 권한/규칙/지표/예외처리까지 시스템으로 고정합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 4: 운영 룰 프로세스 맵 -->
+        <section id="process-map" class="section bg-light">
+            <div class="container text-center">
+                <h2 class="heading-lg mb-4">브랜드마다 다른 것은 기능이 아니라<br><span class="text-primary">운영 룰(Operating
+                        Rules)</span>입니다.</h2>
+                <p class="text-lead mb-12">
+                    같은 "발주/정산"이라도 브랜드의 메뉴/물류/조직/프로모션 구조에 따라 룰이 완전히 달라집니다.<br>
+                    우리는 이 룰을 템플릿+커스텀으로 설계해 시스템으로 완성합니다.
+                </p>
+
+                <div class="process-map-container mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
+                    <!-- Column 1: 브랜드 특성 -->
+                    <div class="process-col bg-white p-8 rounded-xl shadow-md border-t-4 border-slate-600">
+                        <h3 class="text-xl font-bold mb-6 text-slate-800 border-b pb-2">1. 브랜드 특성</h3>
+                        <ul class="process-list space-y-4 text-slate-600 font-medium">
+                            <li class="process-item hover-trigger" data-target="action-1">메뉴/원가 구조 <i
+                                    class="fa-solid fa-chevron-right float-right mt-1 opacity-50"></i></li>
+                            <li class="process-item hover-trigger" data-target="action-2">물류/공급망 구조 <i
+                                    class="fa-solid fa-chevron-right float-right mt-1 opacity-50"></i></li>
+                            <li class="process-item hover-trigger" data-target="action-3">프로모션/캠페인 <i
+                                    class="fa-solid fa-chevron-right float-right mt-1 opacity-50"></i></li>
+                            <li class="process-item hover-trigger" data-target="action-4">조직/권한/역할 <i
+                                    class="fa-solid fa-chevron-right float-right mt-1 opacity-50"></i></li>
+                            <li class="process-item hover-trigger" data-target="action-5">정산/정책/예외 <i
+                                    class="fa-solid fa-chevron-right float-right mt-1 opacity-50"></i></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 2: 룰 엔진 -->
+                    <div
+                        class="process-col bg-primary text-white p-8 rounded-xl shadow-lg flex flex-col justify-center items-center relative z-10 scale-105">
+                        <h3 class="text-2xl font-black mb-8 border-b border-blue-400 pb-2 w-full text-center">2. 룰 엔진
+                        </h3>
+                        <div class="w-full space-y-4">
+                            <div
+                                class="engine-box bg-blue-800 bg-opacity-50 border border-blue-400 p-4 rounded text-center font-bold">
+                                템플릿</div>
+                            <div class="text-center"><i class="fa-solid fa-plus opacity-70"></i></div>
+                            <div
+                                class="engine-box bg-blue-800 bg-opacity-50 border border-blue-400 p-4 rounded text-center font-bold">
+                                커스텀</div>
+                            <div class="text-center"><i class="fa-solid fa-plus opacity-70"></i></div>
+                            <div class="engine-box bg-white text-primary p-4 rounded text-center font-black shadow-md">
+                                브랜드 특화</div>
+                        </div>
+                    </div>
+
+                    <!-- Column 3: 시스템 행동 -->
+                    <div class="process-col bg-white p-8 rounded-xl shadow-md border-t-4 border-blue-500">
+                        <h3 class="text-xl font-bold mb-6 text-slate-800 border-b pb-2">3. 시스템 행동</h3>
+                        <ul class="process-list space-y-4 text-slate-600 font-medium">
+                            <li class="action-item p-3 border rounded-lg transition-all" id="action-1">자동 발주/승인 흐름</li>
+                            <li class="action-item p-3 border rounded-lg transition-all" id="action-2">정산 자동화/검증</li>
+                            <li class="action-item p-3 border rounded-lg transition-all" id="action-3">이상징후 알림/조치</li>
+                            <li class="action-item p-3 border rounded-lg transition-all" id="action-4">대시보드 KPI 표준</li>
+                            <li class="action-item p-3 border rounded-lg transition-all" id="action-5">감사로그/통제</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: 상세 룰 디자인 (2x2 Grid) -->
+        <section id="detail-rules" class="section">
+            <div class="container">
+                <div class="text-center mb-12">
+                    <h2 class="heading-md mb-4">우리가 설계하는 건 기능이 아니라<br><span class="text-primary">"운영 룰의 디테일"</span>입니다.
+                    </h2>
+                    <p class="text-lead">같은 기능이라도 "룰"이 다르면 결과가 달라집니다.</p>
+                </div>
+
+                <div class="rules-grid grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Rule Card 1 -->
+                    <div
+                        class="rule-card bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:shadow-lg transition-shadow">
+                        <div class="icon-box text-3xl text-primary mb-4"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-slate-800">발주 룰 설계</h3>
+                        <p class="text-slate-600 font-medium mb-4">요일/행사/기상/재고를 반영한 발주 기준</p>
+                        <hr class="my-4 border-slate-200">
+                        <p class="text-sm text-slate-500 line-height-relaxed">품목 특성(폐기/유통기한/안전재고)에 따라 "권장 발주량"과 "승인 조건"이
+                            달라집니다.</p>
+                    </div>
+
+                    <!-- Rule Card 2 -->
+                    <div
+                        class="rule-card bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:shadow-lg transition-shadow">
+                        <div class="icon-box text-3xl text-primary mb-4"><i class="fa-solid fa-calculator"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-slate-800">정산 룰 설계</h3>
+                        <p class="text-slate-600 font-medium mb-4">수수료/정산주기/예외처리(프로모션)</p>
+                        <hr class="my-4 border-slate-200">
+                        <p class="text-sm text-slate-500 line-height-relaxed">정산 기준을 시스템에 반영해 자동 검증합니다. 예외가 많을수록, 운영 품질은
+                            사람이 아닌 설계된 기준에 의해 결정됩니다.</p>
+                    </div>
+
+                    <!-- Rule Card 3 -->
+                    <div
+                        class="rule-card bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:shadow-lg transition-shadow">
+                        <div class="icon-box text-3xl text-primary mb-4"><i class="fa-solid fa-users-gear"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-slate-800">권한/승인 구조</h3>
+                        <p class="text-slate-600 font-medium mb-4">본사/슈퍼바이저/가맹점 역할 체계</p>
+                        <hr class="my-4 border-slate-200">
+                        <p class="text-sm text-slate-500 line-height-relaxed">승인·변경 권한을 역할 기반으로 설계하고 감사로그로 남깁니다. 운영 리스크는
+                            대부분 권한에서 시작합니다.</p>
+                    </div>
+
+                    <!-- Rule Card 4 -->
+                    <div
+                        class="rule-card bg-slate-50 border border-slate-200 p-8 rounded-2xl hover:shadow-lg transition-shadow">
+                        <div class="icon-box text-3xl text-primary mb-4"><i
+                                class="fa-solid fa-triangle-exclamation"></i></div>
+                        <h3 class="text-2xl font-bold mb-3 text-slate-800">이슈·조치 룰</h3>
+                        <p class="text-slate-600 font-medium mb-4">이상징후 👉 원인 후보 👉 조치 워크플로우</p>
+                        <hr class="my-4 border-slate-200">
+                        <p class="text-sm text-slate-500 line-height-relaxed">문제를 "발견"하는 것보다 중요한 건 "조치"가 실행되는 구조입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: 성과 증명 (Before & After) -->
+        <section id="result-proof" class="section bg-light">
+            <div class="container">
+                <div class="text-center mb-12">
+                    <h2 class="heading-md mb-4 text-slate-800">시작해 보세요, <span class="text-primary">결과는 달라집니다.</span>
+                    </h2>
+                    <p class="text-lead">같은 기능이라도 "룰"이 다르면 결과가 달라집니다.</p>
+                </div>
+
+                <div class="proof-container grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <!-- Before -->
+                    <div
+                        class="before-box p-8 bg-white border border-slate-200 rounded-xl shadow-md flex flex-col items-center">
+                        <div class="text-slate-400 font-bold mb-4 text-xl">Before</div>
+                        <div class="img-wrap rounded overflow-hidden w-full"
+                            style="aspect-ratio:3/2; background:#f1f5f9; position:relative;">
+                            <img src="https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=1470&auto=format&fit=crop"
+                                alt="Messy Papers Before"
+                                style="width:100%; height:100%; object-fit:cover; opacity:0.6; mix-blend-mode:luminosity;">
+                            <div class="absolute inset-0 flex items-center justify-center text-slate-500 font-bold"
+                                style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%);">수기 문서 및
+                                비효율적 승인</div>
+                        </div>
+                    </div>
+                    <!-- After -->
+                    <div
+                        class="after-box p-8 bg-white border border-blue-200 rounded-xl shadow-lg flex flex-col items-center relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-primary text-white py-1 px-4 rounded-bl-lg font-bold">FOS
+                            도입 후</div>
+                        <div class="text-primary font-bold mb-4 text-xl">After</div>
+                        <div class="img-wrap rounded overflow-hidden w-full border border-slate-100 shadow-sm"
+                            style="aspect-ratio:3/2; background:#fff; position:relative;">
+                            <!-- Placeholder for beautiful UI dashboard -->
+                            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop"
+                                alt="Clean Dashboard After" style="width:100%; height:100%; object-fit:cover;">
+                        </div>
+
+                        <!-- Count up numbers highlighting -->
+                        <div class="stats-row flex justify-between w-full mt-6 text-center">
+                            <div>
+                                <div class="text-3xl font-black text-slate-800"><span class="counter"
+                                        data-target="85">0</span>%</div>
+                                <div class="text-sm text-slate-500 font-medium">단순 업무 감소</div>
+                            </div>
+                            <div>
+                                <div class="text-3xl font-black text-slate-800"><span class="counter"
+                                        data-target="99.9">0</span>%</div>
+                                <div class="text-sm text-slate-500 font-medium">정산 정확도</div>
+                            </div>
+                            <div>
+                                <div class="text-3xl font-black text-slate-800"><span class="counter"
+                                        data-target="40">0</span>%</div>
+                                <div class="text-sm text-slate-500 font-medium">관리 비용 절감</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 7: 활용 사례 -->
+        <section id="use-cases" class="section">
+            <div class="container">
+                <div class="text-center mb-12">
+                    <h2 class="heading-md mb-4">이미 결과를 경험하는 중입니다.</h2>
+                    <p class="text-lead max-w-2xl mx-auto">"어디서 쓰는지"가 아니라, 어떻게 커스텀 되어 운영 룰이 고정되는지가 결과를 만듭니다.</p>
+                </div>
+
+                <div class="cases-grid grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Case 1 -->
+                    <div
+                        class="case-card p-8 border border-slate-200 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
+                        <div class="text-4xl font-black text-primary mb-2">1,300+</div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4">매장 통합 운영 관리</h4>
+                        <p class="text-sm text-slate-600 line-height-relaxed">발주 / 물류 / 매출 실시간 연동 + 브랜드 전용 운영 룰 고정</p>
+                    </div>
+                    <!-- Case 2 -->
+                    <div
+                        class="case-card p-8 border border-slate-200 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
+                        <div class="text-4xl font-black text-primary mb-2">4,300+</div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4">매장 웹/CS 통합 운영</h4>
+                        <p class="text-sm text-slate-600 line-height-relaxed">대규모 CS 처리 + 가맹점 - 본사 채널 표준화</p>
+                    </div>
+                    <!-- Case 3 -->
+                    <div
+                        class="case-card p-8 border border-slate-200 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow text-center">
+                        <div class="text-4xl font-black text-primary mb-2">5억+</div>
+                        <h4 class="text-lg font-bold text-slate-800 mb-4">월 거래액 멤버십 몰</h4>
+                        <p class="text-sm text-slate-600 line-height-relaxed">대용량 트랜잭션 + 전용 상품 자동 발주 + UI 커스텀</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 8: 문의 폼 -->
+        <section id="consult-form" class="section bg-slate-50 border-t border-slate-200">
+            <div class="container flex flex-col md:flex-row gap-12 items-center">
+                <div class="form-text-area flex-1 text-left">
+                    <h2 class="heading-lg mb-6 text-slate-800">우리 브랜드의 운영 체계를<br><span
+                            class="text-primary">'설계'</span>해볼까요?</h2>
+                    <p class="text-xl text-slate-600 mb-8 line-height-relaxed">현재 운영 구조를 빠르게 진단하고<br><strong>"운영 체계 설계
+                            방향"</strong>을 제안드립니다.</p>
+                    <div class="mb-4">
+                        <span
+                            class="inline-block bg-white px-4 py-2 rounded-full text-sm font-bold text-primary border border-slate-200 shadow-sm"><i
+                                class="fa-solid fa-check mr-2"></i> 무료 초기 진단 컨설팅</span>
+                    </div>
+                </div>
+
+                <div
+                    class="form-area flex-1 bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-slate-100 w-full max-w-md">
+                    <form id="contactForm" onsubmit="event.preventDefault(); validateForm();">
+                        <div class="mb-5">
+                            <label for="companyName" class="block text-sm font-bold text-slate-700 mb-2">회사명 *</label>
+                            <input type="text" id="companyName" name="companyName"
+                                class="w-full p-4 border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                                placeholder="예: (주)포스플러스" style="width:100%; box-sizing:border-box;">
+                        </div>
+                        <div class="mb-5">
+                            <label for="managerName" class="block text-sm font-bold text-slate-700 mb-2">담당자명/직함
+                                *</label>
+                            <input type="text" id="managerName" name="managerName"
+                                class="w-full p-4 border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                                placeholder="예: 홍길동 / 운영팀 매니저" style="width:100%; box-sizing:border-box;">
+                        </div>
+                        <div class="mb-5">
+                            <label for="contactInfo" class="block text-sm font-bold text-slate-700 mb-2">연락처 *</label>
+                            <input type="tel" id="contactInfo" name="contactInfo"
+                                class="w-full p-4 border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                                placeholder="예: 010-1234-5678" style="width:100%; box-sizing:border-box;">
+                            <span id="phoneError" class="text-error text-xs font-bold mt-2 hidden"
+                                style="color:var(--color-error); display:none; margin-top:0.5rem;">올바른 연락처 형식을 입력해주세요.
+                                (예: 010-1234-5678)</span>
+                        </div>
+                        <div class="mb-5">
+                            <label for="storeCount" class="block text-sm font-bold text-slate-700 mb-2">매장 수 *</label>
+                            <select id="storeCount"
+                                class="w-full p-4 border border-slate-300 rounded-lg focus:outline-none focus:border-primary text-slate-700 cursor-pointer"
+                                style="width:100%; box-sizing:border-box;">
+                                <option value="" disabled selected>선택해주세요</option>
+                                <option value="1-10">1 ~ 10개</option>
+                                <option value="11-50">11 ~ 50개</option>
+                                <option value="51-100">51 ~ 100개</option>
+                                <option value="100+">100개 이상</option>
+                            </select>
+                        </div>
+                        <div class="mb-6">
+                            <label for="meetingReq" class="block text-sm font-bold text-slate-700 mb-2">미팅에서 확인하고 싶은 것
+                                (선택)</label>
+                            <textarea id="meetingReq"
+                                class="w-full p-4 border border-slate-300 rounded-lg focus:outline-none focus:border-primary min-h-[100px] resize-y"
+                                placeholder="구체적인 고민을 적어주시면 더 정확한 진단 설계가 가능합니다."
+                                style="width:100%; box-sizing:border-box; min-height:100px;"></textarea>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="flex items-start cursor-pointer"
+                                style="display:flex; align-items:flex-start;">
+                                <input type="checkbox" id="privacyAgree" class="mt-1 mr-3 cursor-pointer"
+                                    style="margin-top:0.25rem; margin-right:0.75rem;">
+                                <div>
+                                    <span class="text-sm text-slate-600 font-medium">개인정보 수집 및 이용 동의 *</span><br>
+                                    <span class="text-xs text-slate-400">상담 진행을 위해 입력하신 정보를 수집/이용합니다.</span>
+                                </div>
+                            </label>
+                            <a href="#" class="text-xs text-primary font-bold inline-block mt-2 underline pl-6"
+                                style="padding-left:1.5rem;">개인정보 처리방침 보기</a>
+                            <span id="agreeError" class="text-error text-xs font-bold mt-2 block hidden"
+                                style="color:var(--color-error); display:none; margin-top:0.5rem;">개인정보 수집 및 이용에
+                                동의해주세요.</span>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full btn-primary text-xl py-5 rounded-xl flex justify-center items-center shadow-md font-bold hover:shadow-lg transition-all"
+                            style="width:100%; padding:1.25rem; font-size:1.15rem;">
+                            운영 체계 진단 요청
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer id="main-footer">
+        <div class="footer-container">
+            <p>&copy; 2026 FOS. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
