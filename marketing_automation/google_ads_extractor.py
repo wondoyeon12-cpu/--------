@@ -71,10 +71,15 @@ def get_hidden_landing_urls_via_dorking(keyword):
                 continue
                 
             for item in ad_list:
-                # 개별 아이템 내부에서 제목, 링크, 설명 추출
-                a_tag = item.select_one(".tit_wrap, .lnk_head, .ad_tit, .lnk_tit")
+                # [FIX V2.4] A 태그 정밀 포획 - 제목 상자가 div일 수 있으므로 내부의 진짜 'a' 태그를 확실히 찾습니다.
+                a_tag = item if item.name == 'a' else item.select_one("a")
+                
                 if not a_tag:
-                    continue
+                    # 상기 선택자로 못 찾은 경우 하위 모든 'a' 태그 중 첫 번째 시도
+                    a_tag = item.find("a")
+                
+                if not a_tag or not a_tag.get("href"):
+                    continue # 주소 태그가 없으면 광고 데이터가 아님
                     
                 desc_tag = item.select_one(".ad_dsc")
                 disp_tag = item.select_one(".url")
@@ -116,7 +121,7 @@ def get_hidden_landing_urls_via_dorking(keyword):
                         seen_urls.add(final_link)
                         extracted_data.append({
                             "url": final_link, 
-                            "title": "[네이버 V2.3] " + title, 
+                            "title": "[네이버 V2.4] " + title, 
                             "snippet": desc,
                             "source": "[Naver Native Server]"
                         })
@@ -139,9 +144,10 @@ def get_hidden_landing_urls_via_dorking(keyword):
             g_resp = resp.json() # Renamed 'data' to 'g_resp' to match the provided snippet
 
             def add_unique_google_url(ad, source_name):
-                link = ad.get("link", "")
-                title = ad.get("title", "")
-                snippet = ad.get("description", "") or ad.get("snippet", "")
+                # [FIX V2.4] Google 링크 필드 교차 검증 (link, url, snippet 내 주소 등)
+                link = ad.get("link", ad.get("url", ad.get("canonical_link", "")))
+                title = ad.get("title", "No Title")
+                snippet = ad.get("description", ad.get("snippet", ""))
                 
                 if link and is_valid_url(f"{title} {link} {snippet}"):
                     # 쿼리스트링(utm 등)을 날려버리고 순수 도메인+경로만 남겨 동일 페이지 중복 방지
