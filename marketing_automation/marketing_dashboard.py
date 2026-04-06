@@ -217,25 +217,34 @@ if capture_button and p_ref_url:
     import subprocess
     import time
     import os
-    # 스크립트 위치 및 이미지 저장 경로 절대화
+    import tempfile
+    
+    # 스크립트 위치 절대화
     script_dir = os.path.dirname(os.path.abspath(__file__))
     helper_path = os.path.join(script_dir, "vision_playwright_helper.py")
     
-    out_img_name = f"stitch_reference_temp_{int(time.time())}.jpg"
-    out_img_path = os.path.join(script_dir, out_img_name)
+    # 파일을 시스템 임시 폴더(tempfile)에 저장하여 권한 이슈 회피
+    out_img_name = f"stitch_ref_{int(time.time())}.jpg"
+    out_img_path = os.path.join(tempfile.gettempdir(), out_img_name)
     
-    with st.spinner("📸 랜딩페이지 전체 캡처 중... (약 20~30초 소요)"):
+    with st.spinner("📸 랜딩페이지 전체 캡처 중... (약 20~40초 소요)"):
         try:
             # 절대 경로 및 현재 Python 실행 파일(sys.executable)을 명시하여 실행
             res = subprocess.run([sys.executable, helper_path, p_ref_url, out_img_path], capture_output=True, text=True)
-            if res.returncode == 0:
+            
+            if res.returncode == 0 and os.path.exists(out_img_path):
                 st.session_state.stitch_ref_image_path = out_img_path
-                st.success(f"✅ 캡처 완료! 파일명: {out_img_name}")
+                st.success(f"✅ 캡처 완료! (경로: {out_img_name})")
             else:
                 st.error(f"❌ 캡처 실패 (Exit Code: {res.returncode})")
-                st.info("로그: " + res.stderr)
+                if res.stdout:
+                    st.info("💡 실행 로그(Stdout): " + res.stdout)
+                if res.stderr:
+                    st.warning("⚠️ 에러 로그(Stderr): " + res.stderr)
+                if not os.path.exists(out_img_path):
+                    st.info("파일이 생성되지 않았습니다. 브라우저 구동 또는 권한 이슈가 의심됩니다.")
         except Exception as e:
-            st.error(f"🚀 실행기 오류: {e}")
+            st.error(f"🚀 실행기 치명적 오류: {e}")
 
 if st.session_state.get('stitch_ref_image_path') and os.path.exists(st.session_state.stitch_ref_image_path):
     st.image(st.session_state.stitch_ref_image_path, caption="캡처된 전체화면 이미지", use_container_width=True)

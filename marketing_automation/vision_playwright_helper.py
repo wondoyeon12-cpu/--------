@@ -108,12 +108,12 @@ def main():
                     print(f"Fallback to full_page screenshot due to: {e}")
                     page.screenshot(path=output_filename, full_page=True, type='jpeg', quality=80)
             except Exception as e:
-                print(f"Vision Playwright Error: {e}")
+                print(f"Vision Playwright Error (Launch/Navigate): {e}")
+                sys.exit(1)
             finally:
                 if browser:
                     browser.close()
             
-        # 통이미지 원본(full screenshot)을 그대로 사용하기 위해 분할 로직을 제거함
         print(f"SUCCESS 1")
         
     except Exception as e:
