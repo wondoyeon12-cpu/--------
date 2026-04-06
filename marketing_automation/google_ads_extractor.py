@@ -100,14 +100,23 @@ def get_hidden_landing_urls_via_dorking(keyword):
                     is_related = kw_low in combined_str.lower()
 
                 if is_valid_url(combined_str) and is_related:
-                    # 마스킹된 href 대신, 화면에 노출된 찐 도메인(disp)을 우선 채택하여 리다이렉트 완전 회피
-                    clean_url = "http://" + disp.replace("/", "") if disp else href
+                    # [V2.3 EMERGENCY FIX] 
+                    # 이전의 disp.replace("/", "") 로직은 URL을 파손시켜 Streamlit 내부 페이지로 튕기는 문제를 발생시켰음.
+                    # 가장 확실한 연결을 위해 네이버 원본 광고 링크(href)를 우선 사용하고,
+                    # href가 상대 경로(//)로 시작할 경우 프로토콜을 보강하여 외부 링크임을 명시함.
                     
-                    if is_valid_url(clean_url) and clean_url not in seen_urls:
-                        seen_urls.add(clean_url)
+                    final_link = href
+                    if final_link.startswith("//"):
+                        final_link = "https:" + final_link
+                    elif not final_link.startswith("http"):
+                        # 혹시 모를 프로토콜 누락 대비 (disp를 써야 하는 특수 상황 등)
+                        final_link = "http://" + disp if disp else href
+
+                    if is_valid_url(final_link) and final_link not in seen_urls:
+                        seen_urls.add(final_link)
                         extracted_data.append({
-                            "url": clean_url, 
-                            "title": "[네이버 V2.2] " + title, 
+                            "url": final_link, 
+                            "title": "[네이버 V2.3] " + title, 
                             "snippet": desc,
                             "source": "[Naver Native Server]"
                         })
