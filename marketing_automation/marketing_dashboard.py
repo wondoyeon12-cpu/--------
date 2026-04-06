@@ -1,4 +1,5 @@
 import streamlit as st
+import sys
 import requests
 from bs4 import BeautifulSoup
 import os
@@ -225,8 +226,8 @@ if capture_button and p_ref_url:
     
     with st.spinner("📸 랜딩페이지 전체 캡처 중... (약 20~30초 소요)"):
         try:
-            # 절대 경로를 명시하여 subprocess 실행
-            res = subprocess.run(["python", helper_path, p_ref_url, out_img_path], capture_output=True, text=True)
+            # 절대 경로 및 현재 Python 실행 파일(sys.executable)을 명시하여 실행
+            res = subprocess.run([sys.executable, helper_path, p_ref_url, out_img_path], capture_output=True, text=True)
             if res.returncode == 0:
                 st.session_state.stitch_ref_image_path = out_img_path
                 st.success(f"✅ 캡처 완료! 파일명: {out_img_name}")
@@ -258,7 +259,7 @@ if stitch_button and p_ref_url:
     import subprocess
     import time
     out_img = f"stitch_reference_temp_{int(time.time())}.jpg"
-    subprocess.run(["python", "vision_playwright_helper.py", p_ref_url, out_img])
+    subprocess.run([sys.executable, "vision_playwright_helper.py", p_ref_url, out_img])
     st.session_state.stitch_ref_image_path = out_img
     st.session_state.final_stitch_prompt = f"Stitch Prompt for {p_ref_url} with copy: {p_copy}" # 단순화
 
