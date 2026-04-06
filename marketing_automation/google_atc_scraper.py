@@ -9,11 +9,10 @@ def get_google_atc_ads(keyword):
     print(f"[{keyword}] 구글 광고 투명성 센터 우회 접속 및 딥 스캐닝 중...")
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        # 로봇 차단 우회를 위한 User-Agent 설정
-        page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-        
+        browser = None
         try:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
             # 1. ATC 페이지 접속
             page.goto("https://adstransparency.google.com/?region=KR", timeout=30000)
             page.wait_for_load_state("networkidle", timeout=15000)
@@ -67,7 +66,8 @@ def get_google_atc_ads(keyword):
             print(f"🚨 ATC 스크래핑 에러 (봇 차단 또는 셀렉터 변경): {e}")
             
         finally:
-            browser.close()
+            if browser:
+                browser.close()
             
     return urls
 
