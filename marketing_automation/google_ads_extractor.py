@@ -42,9 +42,11 @@ def get_hidden_landing_urls_via_dorking(keyword):
     # 1. 🇰🇷 네이버 파워링크 서버 심장부 다이렉트 타격 (모바일 환경 강제 적용)
     # 마케터 실무 탐색 패턴(혜택, 가격 등)을 덧붙여 다중 스캐닝 (무료이므로 무제한 타격 가능)
     naver_headers = {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 13; SM-S918N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 14; SM-S928N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8'
+        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
     }
     
     # 찐 퍼포먼스 랜딩만 골라내는 '마법의 키워드' 조합
@@ -58,9 +60,10 @@ def get_hidden_landing_urls_via_dorking(keyword):
             resp = requests.get(url, headers=naver_headers, timeout=5)
             soup = BeautifulSoup(resp.text, 'html.parser')
             
-            ad_links = soup.select(".lnk_tit")
+            # [UPDATE] 최신 네이버 모바일 파워링크 선택자: .tit_wrap, .lnk_head, .ad_tit
+            ad_links = soup.select(".tit_wrap, .lnk_head, .ad_tit, .lnk_tit")
             if not ad_links:
-                continue # 이 조합에 광고가 없으면 다음 마법 단어로 넘어감
+                continue
                 
             for a_tag in ad_links:
                 item = a_tag.find_parent("li")
@@ -76,7 +79,11 @@ def get_hidden_landing_urls_via_dorking(keyword):
                 disp = disp_tag.text.strip() if disp_tag else ""
                 
                 combined_str = f"{title} {disp} {desc}"
-                if is_valid_url(combined_str):
+                
+                # [NEW] 키워드 연관성 필터 강화: 제목이나 설명에 키워드의 핵심이 포함되어 있는지 여부 체크
+                # (예: '슬림웨이' 검색 시 '남친룩' 등 무관한 광고 제거)
+                keyword_core = keyword.strip()
+                if is_valid_url(combined_str) and (keyword_core in combined_str or any(word in combined_str for word in keyword_core.split())):
                     # 마스킹된 href 대신, 화면에 노출된 찐 도메인(disp)을 우선 채택하여 리다이렉트 완전 회피
                     clean_url = "http://" + disp.replace("/", "") if disp else href
                     
