@@ -215,14 +215,29 @@ capture_button = st.button("📸 랜딩페이지 스크린샷 캡처", width="st
 if capture_button and p_ref_url:
     import subprocess
     import time
-    out_img = f"stitch_reference_temp_{int(time.time())}.jpg"
-    with st.spinner("캡처 중..."):
-        subprocess.run(["python", "vision_playwright_helper.py", p_ref_url, out_img])
-    st.session_state.stitch_ref_image_path = out_img
-    st.success(f"✅ 캡처 완료! 파일명: {out_img}")
+    import os
+    # 스크립트 위치 및 이미지 저장 경로 절대화
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    helper_path = os.path.join(script_dir, "vision_playwright_helper.py")
+    
+    out_img_name = f"stitch_reference_temp_{int(time.time())}.jpg"
+    out_img_path = os.path.join(script_dir, out_img_name)
+    
+    with st.spinner("📸 랜딩페이지 전체 캡처 중... (약 20~30초 소요)"):
+        try:
+            # 절대 경로를 명시하여 subprocess 실행
+            res = subprocess.run(["python", helper_path, p_ref_url, out_img_path], capture_output=True, text=True)
+            if res.returncode == 0:
+                st.session_state.stitch_ref_image_path = out_img_path
+                st.success(f"✅ 캡처 완료! 파일명: {out_img_name}")
+            else:
+                st.error(f"❌ 캡처 실패 (Exit Code: {res.returncode})")
+                st.info("로그: " + res.stderr)
+        except Exception as e:
+            st.error(f"🚀 실행기 오류: {e}")
 
 if st.session_state.get('stitch_ref_image_path') and os.path.exists(st.session_state.stitch_ref_image_path):
-    st.image(st.session_state.stitch_ref_image_path, caption="캡처된 전체화면 이미지", width="stretch")
+    st.image(st.session_state.stitch_ref_image_path, caption="캡처된 전체화면 이미지", use_container_width=True)
 
 dummy_str = '''
 # [보관용] Google Stitch 전용 기획 프롬프트 생성기 (숨김 처리)
