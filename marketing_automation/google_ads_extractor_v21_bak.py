@@ -61,19 +61,14 @@ def get_hidden_landing_urls_via_dorking(keyword):
             resp = requests.get(url, headers=naver_headers, timeout=5)
             soup = BeautifulSoup(resp.text, 'html.parser')
             
-            # [UPDATE V2.2] 네이버 메인 파워링크 영역(#lst_site)만 정밀 타격
-            ad_list = soup.select("#lst_site li")
-            if not ad_list:
-                # 구형 레이아웃 대응용 일반 선택자 보조
-                ad_list = soup.select(".tit_wrap, .lnk_head, .ad_tit, .lnk_tit")
-            
-            if not ad_list:
+            # [UPDATE] 최신 네이버 모바일 파워링크 선택자: .tit_wrap, .lnk_head, .ad_tit
+            ad_links = soup.select(".tit_wrap, .lnk_head, .ad_tit, .lnk_tit")
+            if not ad_links:
                 continue
                 
-            for item in ad_list:
-                # 개별 아이템 내부에서 제목, 링크, 설명 추출
-                a_tag = item.select_one(".tit_wrap, .lnk_head, .ad_tit, .lnk_tit")
-                if not a_tag:
+            for a_tag in ad_links:
+                item = a_tag.find_parent("li")
+                if not item:
                     continue
                     
                 desc_tag = item.select_one(".ad_dsc")
@@ -86,19 +81,17 @@ def get_hidden_landing_urls_via_dorking(keyword):
                 
                 combined_str = f"{title} {disp} {desc}"
                 
-                # [NEW V2.2] 영역 기반으로 신뢰도를 높이되, 최소한의 연관성만 체크 (누락 방지)
-                # '남친룩', '패션' 등은 is_valid_url(blacklist)에서 이미 걸러짐
+                # [NEW V2.1] 정밀 필터링: 제목(title)이나 설명(desc)에 키워드가 직접적으로 연관되어야 함
+                # 검색어 "슬림웨이" -> "Slimway" (대소문자 무시) 처리 포함
                 kw_low = keyword.lower().strip()
                 title_low = title.lower()
+                desc_low = desc.lower()
                 
-                # 메인 영역 광고는 거의 100% 정답이므로 필터링을 대폭 완화
-                # (제목에 한 글자라도 겹치거나, 그냥 메인 영역 광고면 일단 수집)
-                is_related = kw_low in title_low or \
-                             any(word in title_low for word in kw_low.split())
-                if not is_related:
-                    # 제목에 없더라도 설명이나 주소에 키워드가 있으면 통과
-                    is_related = kw_low in combined_str.lower()
-
+                # 키워드가 제목이나 설명에 한 글자라도 정확히 매치되거나, 
+                # 영문 매칭(SLIM)이 의도된 경우에만 통과 (남친룩 등 패션 카테고리는 is_valid_url에서 컷)
+                is_related = kw_low in title_low or kw_low in desc_low or \
+                             any(word in title_low or word in desc_low for word in kw_low.split())
+                
                 if is_valid_url(combined_str) and is_related:
                     # 마스킹된 href 대신, 화면에 노출된 찐 도메인(disp)을 우선 채택하여 리다이렉트 완전 회피
                     clean_url = "http://" + disp.replace("/", "") if disp else href
@@ -107,7 +100,7 @@ def get_hidden_landing_urls_via_dorking(keyword):
                         seen_urls.add(clean_url)
                         extracted_data.append({
                             "url": clean_url, 
-                            "title": "[네이버 V2.2] " + title, 
+                            "title": "[네이버 V2.1] " + title, 
                             "snippet": desc,
                             "source": "[Naver Native Server]"
                         })
