@@ -89,6 +89,24 @@ if 'spy_results' not in st.session_state: st.session_state.spy_results = None
 if 'domain_results_data' not in st.session_state: st.session_state.domain_results_data = None
 if 'atc_deep_results' not in st.session_state: st.session_state.atc_deep_results = None
 
+# ---------------- Sidebar: 시스템 관리 ----------------
+with st.sidebar.expander("⚙️ 시스템 관리 (시스템 설정)", expanded=False):
+    st.info("앱 설치 후 또는 브라우저 에러 발생 시 한 번만 실행해 주세요.")
+    if st.button("🌐 브라우저 엔진 자동 설치 (Playwright)", help="클라우드용 크롬 브라우저를 강제로 설치합니다."):
+        with st.spinner("브라우저를 내려받는 중입니다... (약 1~2분 소요)"):
+            import subprocess
+            try:
+                # sys.executable -m playwright install chromium
+                res = subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], capture_output=True, text=True)
+                if res.returncode == 0:
+                    st.success("✅ 브라우저 엔진 설치 완료!")
+                    st.info(res.stdout)
+                else:
+                    st.error(f"❌ 설치 실패 (Code: {res.returncode})")
+                    st.code(res.stderr)
+            except Exception as e:
+                st.error(f"🚀 설치 중 치명적 오류: {e}")
+
 # ---------------- 메인 UI ----------------
 st.title("🐟 코다리 마케팅 대시보드 V2.0")
 st.markdown("경쟁사의 랜딩페이지와 광고 전략을 핀셋처럼 뽑아내는 전용 툴킷입니다.")
