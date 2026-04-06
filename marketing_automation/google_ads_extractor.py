@@ -31,7 +31,8 @@ def get_hidden_landing_urls_via_dorking(keyword):
             "smartstore.naver", "brand.naver", "naver.com", 
             "daum.net", "tistory.com", "blog", "news", 
             "youtube.com", "instagram.com", "facebook.com", "twitter.com",
-            "/product/", "/category/", "/categories/", "/goods/", "/item/", "detail.html"
+            "/product/", "/category/", "/categories/", "/goods/", "/item/", "detail.html",
+            "쇼핑몰", "패션", "남친룩", "코디", "데일리룩", "스타일", "스타일난다"
         ]
         
         for b in blacklist:
@@ -80,10 +81,18 @@ def get_hidden_landing_urls_via_dorking(keyword):
                 
                 combined_str = f"{title} {disp} {desc}"
                 
-                # [NEW] 키워드 연관성 필터 강화: 제목이나 설명에 키워드의 핵심이 포함되어 있는지 여부 체크
-                # (예: '슬림웨이' 검색 시 '남친룩' 등 무관한 광고 제거)
-                keyword_core = keyword.strip()
-                if is_valid_url(combined_str) and (keyword_core in combined_str or any(word in combined_str for word in keyword_core.split())):
+                # [NEW V2.1] 정밀 필터링: 제목(title)이나 설명(desc)에 키워드가 직접적으로 연관되어야 함
+                # 검색어 "슬림웨이" -> "Slimway" (대소문자 무시) 처리 포함
+                kw_low = keyword.lower().strip()
+                title_low = title.lower()
+                desc_low = desc.lower()
+                
+                # 키워드가 제목이나 설명에 한 글자라도 정확히 매치되거나, 
+                # 영문 매칭(SLIM)이 의도된 경우에만 통과 (남친룩 등 패션 카테고리는 is_valid_url에서 컷)
+                is_related = kw_low in title_low or kw_low in desc_low or \
+                             any(word in title_low or word in desc_low for word in kw_low.split())
+                
+                if is_valid_url(combined_str) and is_related:
                     # 마스킹된 href 대신, 화면에 노출된 찐 도메인(disp)을 우선 채택하여 리다이렉트 완전 회피
                     clean_url = "http://" + disp.replace("/", "") if disp else href
                     
@@ -91,7 +100,7 @@ def get_hidden_landing_urls_via_dorking(keyword):
                         seen_urls.add(clean_url)
                         extracted_data.append({
                             "url": clean_url, 
-                            "title": "[네이버 파워링크] " + title, 
+                            "title": "[네이버 V2.1] " + title, 
                             "snippet": desc,
                             "source": "[Naver Native Server]"
                         })
