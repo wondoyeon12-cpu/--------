@@ -125,12 +125,7 @@ if run_button and keyword_input:
     st.session_state.spy_results = None
     import google_ads_extractor
     import meta_ads_extractor
-    import importlib
-    # [NEW] 개발 중 또는 배포 시 캐시 이슈 방지를 위해 엔진 강제 리로드
-    importlib.reload(google_ads_extractor)
-    importlib.reload(meta_ads_extractor)
-    
-    st.info(f"🚀 '{keyword_input}' 스파이 파이프라인 가동 (엔진 V2.4)!")
+    st.info(f"🚀 '{keyword_input}' 스파이 파이프라인 가동!")
     try:
         s_google = google_ads_extractor.get_hidden_landing_urls_via_dorking(keyword_input)
         s_meta = meta_ads_extractor.get_meta_ads_landing_urls(keyword_input)
