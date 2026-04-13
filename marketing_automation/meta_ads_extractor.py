@@ -23,8 +23,7 @@ def get_meta_ads_landing_urls(keyword):
     blacklist = [
         "itunes.apple.com", "play.google.com", "instagram.com", "whatsapp.com", 
         "facebook.com", "fb.com", "smartstore.naver.com", "coupang.com", 
-        "metastatus.com", "meta.com", "messenger.com", "about.meta.com",
-        "/product/", "/category/", "/categories/", "/goods/", "/item/", "detail.html"
+        "metastatus.com", "meta.com", "messenger.com", "about.meta.com"
     ]
     
     def is_valid_url(link):
@@ -60,12 +59,12 @@ def get_meta_ads_landing_urls(keyword):
                     continue
                 
                 # 메타 광고는 자바스크립트 렌더링이 느리므로 충분히 대기
-                page.wait_for_timeout(4000)
+                page.wait_for_timeout(5000)
                 
                 # 무한 스크롤 탑재 (Lazy Loading 대응)
-                for _ in range(3):
+                for _ in range(4):
                     page.mouse.wheel(0, 5000)
-                    page.wait_for_timeout(1500)
+                    page.wait_for_timeout(2000)
                     
                 # 카드 내 외부 링크 전부 적출 (진짜 랜딩페이지들)
                 links = page.locator("a[href]").all()

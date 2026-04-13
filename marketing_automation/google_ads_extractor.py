@@ -24,8 +24,7 @@ def get_hidden_landing_urls_via_dorking(keyword):
             "coupang", "gmarket", "auction", "11st", "ssg.com", 
             "smartstore.naver", "brand.naver", "naver.com", 
             "daum.net", "tistory.com", "blog", "news", 
-            "youtube.com", "instagram.com", "facebook.com", "twitter.com",
-            "/product/", "/category/", "/categories/", "/goods/", "/item/", "detail.html"
+            "youtube.com", "instagram.com", "facebook.com", "twitter.com"
         ]
         
         for b in blacklist:
@@ -33,53 +32,17 @@ def get_hidden_landing_urls_via_dorking(keyword):
                 return False
         return True
 
-    # 1. 🇰🇷 네이버 파워링크 서버 심장부 다이렉트 타격
-    naver_headers = {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 14; SM-S928N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8'
-    }
-    
-    power_suffixes = ["", "가격", "혜택", "이벤트", "할인", "효능", "부작용", "후기"]
-    
     try:
-        for suffix in power_suffixes:
-            search_query = f"{keyword} {suffix}".strip()
-            url = f"https://m.ad.search.naver.com/search.naver?where=m_ad&query={search_query}&pagingIndex=1"
-            resp = requests.get(url, headers=naver_headers, timeout=5)
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            
-            # [ROLLBACK] 초기 안정 버전 선택자로 복구
-            ad_links = soup.select(".lnk_tit")
-            for a_tag in ad_links:
-                item = a_tag.find_parent("li")
-                if not item: continue
-                    
-                desc_tag = item.select_one(".ad_dsc")
-                disp_tag = item.select_one(".url")
-                
-                title = a_tag.text.strip()
-                href = a_tag.get("href", "")
-                desc = desc_tag.text.strip() if desc_tag else ""
-                disp = disp_tag.text.strip() if disp_tag else ""
-                
-                # 프로토콜 보강
-                final_url = href
-                if final_url.startswith("//"):
-                    final_url = "https:" + final_url
-                
-                combined_str = f"{title} {disp} {desc}"
-                if is_valid_url(combined_str) and final_url:
-                    if final_url not in seen_urls:
-                        seen_urls.add(final_url)
-                        extracted_data.append({
-                            "url": final_url, 
-                            "title": "[네이버 파워링크] " + title, 
-                            "snippet": desc,
-                            "source": "[Naver Native Server]"
-                        })
+        import importlib
+        import naver_ad_spider
+        importlib.reload(naver_ad_spider)
+        naver_results = naver_ad_spider.get_massive_naver_ads(keyword)
+        for item in naver_results:
+            if item["url"] not in seen_urls:
+                seen_urls.add(item["url"])
+                extracted_data.append(item)
     except Exception as e:
-        print(f"🚨 Naver 에러 발생: {e}")
+        print(f"🚨 Naver 다이렉트 타격 중 에러 발생: {e}")
 
     # 2. 🇺🇸 구글 메인 모바일 광고 타격 (SerpApi 활용)
     if SERPAPI_API_KEY:

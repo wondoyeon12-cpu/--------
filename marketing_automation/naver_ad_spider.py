@@ -1,13 +1,18 @@
 import sys
 import time
+import asyncio
 from playwright.sync_api import sync_playwright
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
 def get_massive_naver_ads(keyword):
     urls = []
     seen = set()
     print(f"[{keyword}] 네이버 파워링크 마스터 서버 무제한 스캐닝 통신 중...")
     
-    # ❌ 오픈마켓, 종합몰 등 가짜 랜딩(단순 판매처) 강력 필터링
+    # ❌ 오픈마켓, 종합몰 등 가짜 랜딩(단순 판매처) 필터링
+    # detail.html 등 실제 랜딩페이지 주소는 제외하지 않도록 조정
     blacklist = ["coupang", "11st", "ssg", "danawa", "gmarket", "auction", "smartstore", "tmon", "wemakeprice", "lotteon", "interpark", "enuri", "nstore", "100ssd", "hnsmall", "cjonstyle", "gsshop", "hmall", "shinsegaetvshopping"]
 
     def is_valid(text):
@@ -19,28 +24,27 @@ def get_massive_naver_ads(keyword):
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
-        # 네이버 봇 차단 우회용 PC 환경 헤더
         context = browser.new_context(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         )
         page = context.new_page()
         
         try:
-            # 1~2 페이지(최대 50개 광고)를 싹 쓸어옵니다.
             for page_num in range(1, 3):
                 target_url = f"https://ad.search.naver.com/search.naver?where=ad&query={keyword}&pagingIndex={page_num}"
                 page.goto(target_url, timeout=15000)
-                time.sleep(2)
+                page.wait_for_timeout(2000)
                 
-                # 광고 리스트 아이템 파싱
-                items = page.locator("li[class^='lst']").all()
+                # [수정] 클래스명 lst가 사라졌으므로, 구조적으로 li를 탐색합니다.
+                items = page.locator("#container li").all()
                 if not items:
-                    break # 더 이상 광고가 없으면 종료
+                    break
                     
                 for item in items:
-                    title_el = item.locator(".lnk_head")
-                    disp_el = item.locator(".url")
-                    desc_el = item.locator(".ad_dsc")
+                    # [수정] 태그 형태가 바뀐 선택자들을 업데이트합니다.
+                    title_el = item.locator("a.tit_wrap")
+                    disp_el = item.locator("a.url")
+                    desc_el = item.locator("a.link_desc")
                     
                     if title_el.count() > 0:
                         title = title_el.first.inner_text().strip()
@@ -48,14 +52,12 @@ def get_massive_naver_ads(keyword):
                         disp = disp_el.first.inner_text().strip() if disp_el.count() > 0 else ""
                         desc = desc_el.first.inner_text().strip() if desc_el.count() > 0 else ""
                         
-                        # 텍스트 삼중 교차 검증으로 숨은 쿠팡/지마켓 색출
                         combined = f"{title} {disp} {desc}"
                         
                         if is_valid(combined):
-                            # 실제 노출되는 도메인을 최종 랜딩 URL로 확정 (트래킹 주소 제거)
-                            clean_url = "http://" + disp.replace("/", "") if disp else href
+                            # [수정] disp.replace("/", "") 오류 제거: 슬래시가 포함된 유효한 URL도 그대로 유지
+                            clean_url = "http://" + disp.strip() if disp else href
                             
-                            # 최종 URL에도 쿠팡 같은 글자가 섞여있지 않은지 4중 검수
                             if is_valid(clean_url):
                                 if clean_url not in seen:
                                     seen.add(clean_url)
