@@ -123,19 +123,56 @@ with st.container():
 
 if run_button and keyword_input:
     st.session_state.spy_results = None
+    import importlib
     import google_ads_extractor
     import meta_ads_extractor
+    importlib.reload(google_ads_extractor)
+    importlib.reload(meta_ads_extractor)
+    
     st.info(f"🚀 '{keyword_input}' 스파이 파이프라인 가동!")
-    try:
-        s_google = google_ads_extractor.get_hidden_landing_urls_via_dorking(keyword_input)
-        s_meta = meta_ads_extractor.get_meta_ads_landing_urls(keyword_input)
-        all_res = s_google + s_meta
-        if not all_res: st.error("탐지 실패"); st.stop()
-        scraped = scrape_contents(all_res[:7])
-        briefing = generate_briefing_with_openai(scraped)
-        st.session_state.spy_results = {"keyword_input": keyword_input, "google": s_google, "meta": s_meta, "all": all_res, "briefing": briefing}
-        st.balloons()
-    except Exception as e: st.error(f"오류: {e}")
+    
+    with st.status("🔍 엔진별 합동 수색 진행 중...", expanded=True) as status:
+        all_res = []
+        try:
+            # 1. 구글 & 네이버 엔진 가동
+            st.write("↳ [네이버/구글] 은밀한 타켓 랜딩페이지 추출 중...")
+            s_google = google_ads_extractor.get_hidden_landing_urls_via_dorking(keyword_input)
+            gn_count = len(s_google)
+            st.write(f"   ✅ 네이버/구글 엔진: {gn_count}개 발견")
+            
+            # 2. 메타 엔진 가동
+            st.write("↳ [메타 Ads] 페이스북/인스타 광고 라이브러리 침투 중...")
+            s_meta = meta_ads_extractor.get_meta_ads_landing_urls(keyword_input)
+            meta_count = len(s_meta)
+            st.write(f"   ✅ 메타 엔진: {meta_count}개 발견")
+            
+            all_res = s_google + s_meta
+            
+            if not all_res:
+                status.update(label="❌ 탐지 결과 없음", state="error")
+                st.error(f"'{keyword_input}' 키워드로 탐지된 광고 랜딩페이지가 없습니다. (블랙리스트 필터링 또는 검색 결과 없음)")
+                st.stop()
+            
+            # 3. 데이터 분석
+            st.write(f"↳ 총 {len(all_res)}개 랜딩 중 상위 7개 심층 분석 중...")
+            scraped = scrape_contents(all_res[:7])
+            briefing = generate_briefing_with_openai(scraped)
+            
+            st.session_state.spy_results = {
+                "keyword_input": keyword_input, 
+                "google": s_google, 
+                "meta": s_meta, 
+                "all": all_res, 
+                "briefing": briefing
+            }
+            status.update(label="✅ 전 엔진 수색 및 분석 완료!", state="complete")
+            st.balloons()
+            
+        except Exception as e:
+            status.update(label="🚨 치명적 오류 발생", state="error")
+            st.error(f"실행 중 오류가 발생했습니다: {e}")
+            import traceback
+            st.code(traceback.format_exc())
 
 if st.session_state.spy_results:
     res = st.session_state.spy_results

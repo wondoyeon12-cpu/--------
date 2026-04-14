@@ -35,9 +35,11 @@ def get_massive_naver_ads(keyword):
                 page.goto(target_url, timeout=15000)
                 page.wait_for_timeout(2000)
                 
-                # [수정] 클래스명 lst가 사라졌으므로, 구조적으로 li를 탐색합니다.
-                items = page.locator("#container li").all()
+                # [수정] 특정 ID(#container)에 의존하지 않고, 페이지 내 모든 li 중 광고 제목(.tit_wrap)이 있는 것을 직접 찾습니다.
+                # 네이버의 동적 구조 변경에 대응하기 위한 불변 선택자 전략입니다.
+                items = page.locator("li:has(.tit_wrap), li:has(a.url)").all()
                 if not items:
+                    print(f"  [Page {page_num}] 광고 항목을 찾을 수 없습니다. (구조 변경 의심)")
                     break
                     
                 for item in items:

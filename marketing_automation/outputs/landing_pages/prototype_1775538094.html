@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코다리 AI - 1인 기업가의 최강 비서</title>
+    <style>
+        /* === Premium UI Design System === */
+        :root {
+            --bg-dark: #0f172a;
+            --text-light: #f8fafc;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Pretendard', 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background Glow */
+        .glow {
+            position: fixed;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(0,0,0,0) 70%);
+            top: -20%;
+            left: -10%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .glow-right {
+            left: auto;
+            right: -10%;
+            top: 40%;
+            background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 100px 0;
+            display: flex;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        /* Reverse grid for alternating sections */
+        .grid-2.reverse .content {
+            order: 2;
+        }
+        .grid-2.reverse .image-container {
+            order: 1;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-2.reverse {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 40px;
+            }
+            .grid-2.reverse .content { order: 1; }
+            .grid-2.reverse .image-container { order: 2; }
+            section { min-height: auto; padding: 60px 0; }
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 3.5rem;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 1.125rem;
+            color: #94a3b8;
+            margin-bottom: 32px;
+        }
+
+        /* Buttons */
+        .cta-btn {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 16px 36px;
+            border-radius: 50px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .cta-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        /* Glassmorphism Images */
+        .image-container {
+            position: relative;
+        }
+
+        .image-wrapper {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+            object-fit: cover;
+            aspect-ratio: 4/3;
+        }
+
+        /* Section Specifics */
+        .final-cta {
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0) 100%);
+            border-radius: 30px;
+            padding: 80px 40px;
+            margin: 60px 24px;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(5px);
+        }
+
+        .final-cta h2 { margin-bottom: 16px; }
+        .final-cta p { max-width: 600px; margin: 0 auto 32px auto; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="glow"></div>
+    <div class="glow glow-right"></div>
+
+    <!-- 1. Hero Section -->
+    <section class="container">
+        <div class="grid-2">
+            <div class="content">
+                <h1>아이디어가 넘치는 당신을 위한 완벽한 파트너!</h1>
+                <p>디자인, 개발 걱정 없이 비즈니스를 즉시 런치하세요. 초가성비의 올인원 비서가 도와드립니다.</p>
+                <a href="#cta" class="cta-btn">지금 시작하기</a>
+            </div>
+            <div class="image-container">
+                <div class="image-wrapper">
+                    <img src="file:///C:/Users/user/OneDrive/Desktop/에이전트프로젝트/marketing_automation/outputs/landing_pages/1775538043_hero_img.png" alt="Hero Image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Problem Section -->
+    <section class="container">
+        <div class="grid-2 reverse">
+            <div class="content">
+                <h2 style="color: #f87171;">비즈니스 아이디어는 있지만 실현이 두렵나요?</h2>
+                <p>기술에 대한 장벽과 높은 외주 비용 때문에 당신의 아이디어가 사라지고 있지는 않으신가요? 야근과 스트레스는 더 이상 필요 없습니다.</p>
+            </div>
+            <div class="image-container">
+                <div class="image-wrapper">
+                    <img src="file:///C:/Users/user/OneDrive/Desktop/에이전트프로젝트/marketing_automation/outputs/landing_pages/1775538058_prob_img.png" alt="Problem Image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Solution Section -->
+    <section class="container">
+        <div class="grid-2">
+            <div class="content">
+                <h2 style="color: #4ade80;">코다리 AI가 당신의 문제를 해결합니다.</h2>
+                <p>우리의 올인원 비서는 무한 자동화로 복잡한 개발과 마케팅을 간소화하여, 당신의 아이디어를 즉시 실현합니다. 외주 비용은 제로, 프리미엄 퀄리티를 보장합니다.</p>
+            </div>
+            <div class="image-container">
+                <div class="image-wrapper">
+                    <img src="file:///C:/Users/user/OneDrive/Desktop/에이전트프로젝트/marketing_automation/outputs/landing_pages/1775538075_sol_img.png" alt="Solution Image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. Features/Social Proof Section -->
+    <section class="container">
+        <div class="grid-2 reverse">
+            <div class="content">
+                <h2 style="color: #a78bfa;">가성비 최고, 성과는 프리미엄!</h2>
+                <p>코다리 AI는 디자인, 프론트/백엔드 개발을 모두 지원하며, 당신의 비즈니스에 필요한 모든 기능을 제공하여 시간과 비용을 절약합니다.</p>
+            </div>
+            <div class="image-container">
+                <div class="image-wrapper">
+                    <img src="file:///C:/Users/user/OneDrive/Desktop/에이전트프로젝트/marketing_automation/outputs/landing_pages/1775538090_feat_img.png" alt="Feature Image">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Final CTA Section -->
+    <section class="container" id="cta">
+        <div class="final-cta">
+            <h2>지금 바로 코다리 AI로 성공의 첫걸음을 내딛으세요!</h2>
+            <p>지금 등록하시면 특별 할인 혜택과 함께 1주일 내에 비즈니스 런치가 가능합니다. 당신의 아이디어를 현실로 만드세요.</p>
+            <a href="#" class="cta-btn" style="background: #ef4444;">즉시 등록하기</a>
+        </div>
+    </section>
+
+</body>
+</html>

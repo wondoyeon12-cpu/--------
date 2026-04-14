@@ -3,7 +3,7 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from dotenv import load_dotenv
 
-from database import save_message, get_recent_messages
+from database import save_message, get_recent_messages, get_last_message_timestamp
 from ai_service import get_ai_answer
 
 load_dotenv()
@@ -80,9 +80,6 @@ def build_briefing_blocks_and_text(data: dict, user_map: dict, logger=None) -> t
             text_content += f"> *전체 대화 요약*\n> {overall_summary}\n\n"
             md_content += f"**전체 대화 요약**\n{overall_summary}\n\n"
             
-        text_content += "- :clock3: 대화 타임라인:\n"
-        md_content += "- 대화 타임라인:\n\n"
-
         blocks.append({
             "type": "section",
             "text": {
@@ -92,96 +89,89 @@ def build_briefing_blocks_and_text(data: dict, user_map: dict, logger=None) -> t
         })
         md_text += md_content
 
+        all_ts_list = []
+        all_raw_lines = []
+        all_replies = []
+
         for msg in ch.get("messages", []):
-            m_time = msg.get("time", "")
-            m_title = msg.get("title", "")
-            m_summary = msg.get("summary", "")
-            
-            # 배열(list) 혹은 단일 문자열 호환
             m_ts_val = msg.get("original_ts_list") or msg.get("original_ts", "")
             if isinstance(m_ts_val, list):
                 m_ts_list = [str(t).strip() for t in m_ts_val if t]
             else:
                 m_ts_list = [str(m_ts_val).strip()] if m_ts_val else []
             
-            m_ts = ",".join(m_ts_list)  # Join to a single string for button value
+            for current_ts in m_ts_list:
+                if current_ts not in all_ts_list:
+                    all_ts_list.append(current_ts)
+                
+                # 원문 가져오기 (이메일 아코디언용)
+                try:
+                    raw_row = get_message_by_ts(current_ts)
+                    if raw_row:
+                        r_channel, r_user, r_text, r_ts = raw_row
+                        try:
+                            r_dt = datetime.datetime.fromtimestamp(float(r_ts))
+                            r_time = r_dt.strftime("%H:%M")
+                        except Exception:
+                            r_time = str(r_ts)
+                        r_text_display = r_text
+                        for mention, name in user_map.items():
+                            r_text_display = r_text_display.replace(mention, name)
+                        all_raw_lines.append(f"[{r_time}] {r_user}\n{r_text_display}")
+                except Exception as e:
+                    if logger:
+                        logger.error(f"원문 조회 실패 (ts={current_ts}): {e}")
 
-            text_block = f"*[ {m_time} ] {m_title}*\n{m_summary}"
-            blocks.append({
-                "type": "section",
-                "text": {"type": "mrkdwn", "text": text_block}
-            })
+                # 쓰레드 답글 가져오기 (이메일 아코디언용)
+                try:
+                    reply_rows = get_replies_by_thread_ts(current_ts)
+                    for r_user, r_text, r_ts in reply_rows:
+                        try:
+                            r_dt = datetime.datetime.fromtimestamp(float(r_ts))
+                            r_time = r_dt.strftime("%H:%M")
+                        except Exception:
+                            r_time = str(r_ts)
+                        r_text_display = r_text
+                        for mention, name in user_map.items():
+                            r_text_display = r_text_display.replace(mention, name)
+                        all_replies.append(f"[{r_time}] {r_user}\n{r_text_display}")
+                except Exception as e:
+                    if logger:
+                        logger.error(f"댓글 조회 실패 (ts={current_ts}): {e}")
 
-            if m_ts_list:
-                raw_lines = []
-                replies = []
-                for current_ts in m_ts_list:
-                    # 원문 가져오기
-                    try:
-                        raw_row = get_message_by_ts(current_ts)
-                        if raw_row:
-                            r_channel, r_user, r_text, r_ts = raw_row
-                            try:
-                                r_dt = datetime.datetime.fromtimestamp(float(r_ts))
-                                r_time = r_dt.strftime("%H:%M")
-                            except Exception:
-                                r_time = str(r_ts)
-                            r_text_display = r_text
-                            for mention, name in user_map.items():
-                                r_text_display = r_text_display.replace(mention, name)
-                            raw_lines.append(f"[{r_time}] {r_user}\n{r_text_display}")
-                    except Exception as e:
-                        if logger:
-                            logger.error(f"원문 조회 실패 (ts={current_ts}): {e}")
+        # 슬랙용 대화 원문 보기 버튼 추가 (채널 당 1개)
+        if all_ts_list:
+            m_ts_str = ",".join(all_ts_list)
+            if len(m_ts_str) > 1999: # slack action value max is 2000 limit
+                m_ts_str = ",".join(all_ts_list[:100])
+            
+            action_elements = [
+                {
+                    "type": "button",
+                    "text": {"type": "plain_text", "emoji": True, "text": "📄 대화 원문 보기"},
+                    "value": m_ts_str,
+                    "action_id": "open_single_raw_log_modal"
+                }
+            ]
+            
+            if all_replies:
+                modal_value = "\n\n".join(all_replies)[:1900]
+                action_elements.append({
+                    "type": "button",
+                    "text": {"type": "plain_text", "emoji": True, "text": f"💬 댓글 보기 ({len(all_replies)}개)"},
+                    "value": modal_value,
+                    "action_id": "open_reply_modal"
+                })
+            
+            blocks.append({"type": "actions", "elements": action_elements})
 
-                    # 쓰레드 답글 가져오기
-                    try:
-                        reply_rows = get_replies_by_thread_ts(current_ts)
-                        for r_user, r_text, r_ts in reply_rows:
-                            try:
-                                r_dt = datetime.datetime.fromtimestamp(float(r_ts))
-                                r_time = r_dt.strftime("%H:%M")
-                            except Exception:
-                                r_time = str(r_ts)
-                            r_text_display = r_text
-                            for mention, name in user_map.items():
-                                r_text_display = r_text_display.replace(mention, name)
-                            replies.append(f"[{r_time}] {r_user}\n{r_text_display}")
-                    except Exception as e:
-                        if logger:
-                            logger.error(f"댓글 조회 실패 (ts={current_ts}): {e}")
-
-                action_elements = [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "emoji": True, "text": "📄 대화 원문 보기"},
-                        "value": str(m_ts),
-                        "action_id": "open_single_raw_log_modal"
-                    }
-                ]
-                if replies:
-                    modal_value = "\n\n".join(replies)[:1900]
-                    action_elements.append({
-                        "type": "button",
-                        "text": {"type": "plain_text", "emoji": True, "text": f"💬 댓글 보기 ({len(replies)}개)"},
-                        "value": modal_value,
-                        "action_id": "open_reply_modal"
-                    })
-                blocks.append({"type": "actions", "elements": action_elements})
-
-                if raw_lines:
-                    raw_content = "\n".join(raw_lines)
-                    md_text += f"{text_block}\n%%ACCORDION_START%%\n{raw_content}\n%%ACCORDION_END%%\n"
-                else:
-                    md_text += f"{text_block}\n"
-
-                if replies:
-                    reply_content = "\n\n".join(replies)
-                    md_text += f"%%COMMENT_ACCORDION_START%%\n{reply_content}\n%%COMMENT_ACCORDION_END%%\n\n"
-                else:
-                    md_text += "\n"
-            else:
-                md_text += f"{text_block}\n\n"
+        # 이메일용 아코디언 추가
+        if all_raw_lines:
+            raw_content = "\n".join(all_raw_lines)
+            md_text += f"\n%%ACCORDION_START%%\n{raw_content}\n%%ACCORDION_END%%\n"
+        if all_replies:
+            reply_content = "\n\n".join(all_replies)
+            md_text += f"\n%%COMMENT_ACCORDION_START%%\n{reply_content}\n%%COMMENT_ACCORDION_END%%\n\n"
 
     footer_text = "저 위시드는 언제든 대표님의 얘기에 귀기울일 준비가 되어 있습니다! 언제든 불러주십쇼 😎"
     blocks.append({
@@ -370,10 +360,6 @@ def handle_app_mention_events(body, say, logger):
         if chunk:
             say(text="오늘의 요약 브리핑 도착", blocks=chunk)
 
-        from email_service import send_daily_briefing
-        email_success = send_daily_briefing(md_text)
-        if email_success:
-            say("📧 [위시드 비서실장] 요약 브리핑을 대표님의 이메일로도 무사히 발송 완료했습니다!")
     else:
         # 일반 질문인 경우 최근 대화 맥락과 함께 AI 답변 생성
         from database import get_recent_messages
@@ -467,6 +453,59 @@ def handle_open_reply_modal(ack, body, client, logger):
         )
     except Exception as e:
         logger.error(f"댓글 모달 열기 에러: {e}")
+
+def backfill_missed_messages(app):
+    """봇이 꺼져있을 때 발생한 메시지들을 소급하여 DB에 저장합니다."""
+    import time
+    last_ts = get_last_message_timestamp()
+    if not last_ts:
+        # DB에 메시지가 하나도 없으면 24시간 전부터 가져옴
+        last_ts = str(time.time() - 86400)
+    
+    print(f"[백필] 마지막 수집 시점({last_ts}) 이후의 누락된 메시지를 수집합니다...")
+    
+    try:
+        # 봇이 참여 중인 모든 공개/비공개 채널, MPIM, IM 목록 가져오기
+        result = app.client.conversations_list(types="public_channel,private_channel,mpim,im")
+        channels = result.get("channels", [])
+        
+        total_collected = 0
+        for channel in channels:
+            channel_id = channel.get("id")
+            # 봇이 해당 채널의 멤버가 아니면 히스토리를 가져올 수 없으므로 체크
+            if not channel.get("is_member"):
+                continue
+
+            channel_name = channel.get("name", channel_id)
+            
+            # 대화 기록 가져오기 (마지막 시점 이후부터)
+            history = app.client.conversations_history(channel=channel_id, oldest=last_ts)
+            messages = history.get("messages", [])
+            
+            # 수집된 메시지를 시간 순(오래된 순)으로 정렬하여 저장
+            for msg in reversed(messages):
+                ts = msg.get("ts")
+                if ts == last_ts: continue # 마지막 메시지 중복 방지
+                
+                user_id = msg.get("user")
+                text = msg.get("text")
+                thread_ts = msg.get("thread_ts")
+                
+                # 봇 메시지 제외
+                if msg.get("bot_id") or not text:
+                    continue
+                
+                user_name = f"<@{user_id}>"
+                save_message(channel_name, user_name, text, ts, thread_ts=thread_ts)
+                total_collected += 1
+        
+        if total_collected > 0:
+            print(f"[백필] 총 {total_collected}건의 누락된 메시지를 성공적으로 복구했습니다! 😎")
+        else:
+            print("[백필] 새로 수집할 누락된 메시지가 없습니다.")
+            
+    except Exception as e:
+        print(f"[백필 실패] 메시지 복구 중 오류 발생: {e}")
 
 def start_slack_bot():
     """소켓 모드 핸들러로 슬랙 봇을 실행합니다."""
