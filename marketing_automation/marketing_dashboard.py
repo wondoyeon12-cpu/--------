@@ -1,6 +1,7 @@
 import streamlit as st
 import sys
 import requests
+import concurrent.futures
 from bs4 import BeautifulSoup
 import os
 import json
@@ -30,18 +31,25 @@ st.markdown("""
 
 # ---------------- 헬퍼 함수 ----------------
 
-def scrape_contents(items):
+def fetch_content(item):
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+    try:
+        res = requests.get(item['url'], headers=headers, timeout=10)
+        res.encoding = 'utf-8'
+        soup = BeautifulSoup(res.text, 'html.parser')
+        for s in soup(['script', 'style']): s.decompose()
+        return {"url": item['url'], "title": item.get('title', 'No Title'), "content": soup.get_text()[:4000]}
+    except:
+        return None
+
+def scrape_contents(items):
     results = []
-    for item in items:
-        try:
-            res = requests.get(item['url'], headers=headers, timeout=10)
-            res.encoding = 'utf-8'
-            soup = BeautifulSoup(res.text, 'html.parser')
-            for s in soup(['script', 'style']): s.decompose()
-            results.append({"url": item['url'], "title": item.get('title', 'No Title'), "content": soup.get_text()[:4000]})
-        except:
-            continue
+    with concurrent.futures.ThreadPoolExecutor(max_workers=7) as executor:
+        future_to_item = {executor.submit(fetch_content, item): item for item in items}
+        for future in concurrent.futures.as_completed(future_to_item):
+            data = future.result()
+            if data:
+                results.append(data)
     return results
 
 def generate_briefing_with_openai(data):
@@ -58,7 +66,7 @@ def generate_briefing_with_openai(data):
     - target_audience: 단순 나이대가 아닌, 타겟의 심리적 고통(Pain Point), 구매 동기, 행동 패턴, 라이프스타일까지 포함한 심층 분석. 최소 4~5문장 이상 작성.
     - product_features: 성분명·함량·인증 등 구체적 수치와 차별화 이유를 포함한 핵심 특장점. 5개 이상 배열로 작성. 각 항목은 '~mg', '~특허', '~인증' 등 구체성 있게 작성.
     - competitor_analysis: 크롤링된 내용에서 각 경쟁사를 식별하고, 각 브랜드별로 [고유 강점(USP), 마케팅 전술, 메인 타겟층, 약점/공략 포인트]를 구분하여 비교 분석. 최소 300자 이상.
-    - recommended_keywords: SEO 및 퍼포먼스 광고에 활용 가능한 키워드 정확히 20개. 단순 단어가 아닌 롱테일 키워드 포함.
+    - recommended_keywords: SEO 및 퍼포먼스 광고에 활용 가능한 키워드 정확히 50개. 단순 단어가 아닌 롱테일 키워드 포함.
     - hooking_copy: 10개 중 마지막 2개는 클릭률 극대화를 위해 윤리적 한계를 살짝 밀어붙이는 '초강력 도발형' 카피로 작성. 나머지 8개는 감성·비포애프터·혜택 중심으로 다양하게.
     
     [출력 JSON 구조]
@@ -67,7 +75,7 @@ def generate_briefing_with_openai(data):
       "target_audience": "심층 타겟층 분석 (4-5문장 이상)",
       "product_features": ["특장점1 (수치/성분 포함)", "특장점2", ...],
       "competitor_analysis": "경쟁사별 포지셔닝 심층 비교 (300자 이상)",
-      "recommended_keywords": ["키워드1", "키워드2", ... (정확히 20개)],
+      "recommended_keywords": ["키워드1", "키워드2", ... (정확히 50개)],
       "hooking_copy": ["카피1", ... "카피8", "💥극강 도발 카피9", "💥극강 도발 카피10"]
     }}
     
@@ -134,16 +142,19 @@ if run_button and keyword_input:
     with st.status("🔍 엔진별 합동 수색 진행 중...", expanded=True) as status:
         all_res = []
         try:
-            # 1. 구글 & 네이버 엔진 가동
-            st.write("↳ [네이버/구글] 은밀한 타켓 랜딩페이지 추출 중...")
-            s_google = google_ads_extractor.get_hidden_landing_urls_via_dorking(keyword_input)
-            gn_count = len(s_google)
-            st.write(f"   ✅ 네이버/구글 엔진: {gn_count}개 발견")
+            st.write("↳ [전 엔진 동시 가동] 구글/네이버 & 메타 Ads 침투 중...")
             
-            # 2. 메타 엔진 가동
-            st.write("↳ [메타 Ads] 페이스북/인스타 광고 라이브러리 침투 중...")
-            s_meta = meta_ads_extractor.get_meta_ads_landing_urls(keyword_input)
+            # 병렬로 엔진 실행
+            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+                future_google = executor.submit(google_ads_extractor.get_hidden_landing_urls_via_dorking, keyword_input)
+                future_meta = executor.submit(meta_ads_extractor.get_meta_ads_landing_urls, keyword_input)
+                
+                s_google = future_google.result()
+                s_meta = future_meta.result()
+                
+            gn_count = len(s_google)
             meta_count = len(s_meta)
+            st.write(f"   ✅ 네이버/구글 엔진: {gn_count}개 발견")
             st.write(f"   ✅ 메타 엔진: {meta_count}개 발견")
             
             all_res = s_google + s_meta
@@ -231,7 +242,7 @@ if st.session_state.spy_results:
     st.markdown(f"<div style='background-color:#fefce8; padding:25px; border-radius:12px; border:1px solid #fde047; font-size:15px; color:#422006; white-space: pre-wrap;'>{briefing.get('competitor_analysis', '')}</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 🔑 실무진 추천 핵심 키워드 (20선)")
+    st.markdown("### 🔑 실무진 추천 핵심 키워드 (50선)")
     keywords = briefing.get('recommended_keywords', [])
     if keywords:
         kw_html = "<div style='background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px dashed #cbd5e1;'>"
@@ -375,9 +386,7 @@ if pattern_images:
                 all_page_analyses = []  # 각 페이지별 텍스트 분석 결과
 
                 # ── Pass 1: 이미지별 텍스트·구조 전수 추출 ──
-                for img_idx, img_file in enumerate(pattern_images):
-                    st.write(f"↳ [{img_idx+1}/{len(pattern_images)}] '{img_file.name}' 분석 중...")
-
+                def analyze_image(img_file):
                     img = Image.open(img_file).convert("RGB")
                     w, h = img.size
                     ch = 900
@@ -434,8 +443,13 @@ if pattern_images:
                         max_tokens=3000,
                         temperature=0.2
                     )
-                    page_analysis = json.loads(p1_res.choices[0].message.content)
-                    all_page_analyses.append(page_analysis)
+                    return json.loads(p1_res.choices[0].message.content)
+                
+                st.write(f"↳ 총 {len(pattern_images)}개 화면 동시 병렬 분석 중...")
+                with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                    futures = [executor.submit(analyze_image, img_file) for img_file in pattern_images]
+                    for future in concurrent.futures.as_completed(futures):
+                        all_page_analyses.append(future.result())
 
                 st.write(f"↳ Pass 1 완료 ({len(all_page_analyses)}개 페이지 분석). 공통점 교차 비교 중...")
 
