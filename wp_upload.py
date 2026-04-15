@@ -12,8 +12,11 @@ from bs4 import BeautifulSoup
 
 # 워드프레스 접속 정보
 WP_URL = 'https://dailywell.co.kr'
-USERNAME = 'wondoyeon12@gmail.com'
-PASSWORD = 'gC13 1hW4 bG5w J2RH IhsN di4L'
+from dotenv import load_dotenv
+load_dotenv()
+
+USERNAME = os.getenv('WP_USERNAME', 'wondoyeon12@gmail.com')
+PASSWORD = os.getenv('WP_PASSWORD', '')
 API_ENDPOINT = f"{WP_URL}/wp-json/wp/v2"
 
 # 인증 설정

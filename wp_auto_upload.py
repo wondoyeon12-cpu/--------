@@ -9,8 +9,11 @@ from bs4 import BeautifulSoup, Comment
 sys.stdout.reconfigure(encoding='utf-8')
 
 WP_URL = 'https://dailywell.co.kr'
-USERNAME = 'wondoyeon12@gmail.com'
-PASSWORD = 'gC13 1hW4 bG5w J2RH IhsN di4L'
+from dotenv import load_dotenv
+load_dotenv()
+
+USERNAME = os.getenv('WP_USERNAME', 'wondoyeon12@gmail.com')
+PASSWORD = os.getenv('WP_PASSWORD', '')
 API_ENDPOINT = f"{WP_URL}/wp-json/wp/v2"
 
 credentials = f"{USERNAME}:{PASSWORD}"
@@ -68,7 +71,7 @@ def create_post(title, content, save_as_draft=True):
         print(f"❌ 게시글 생성 실패 ({response.status_code}): {response.text}")
         return None
 
-def process_and_upload(file_path):
+def process_and_upload(file_path, save_as_draft=True):
     if not os.path.exists(file_path):
         print(f"❌ 파일을 찾을 수 없습니다: {file_path}")
         return
@@ -129,16 +132,18 @@ def process_and_upload(file_path):
 </div>
 <!-- /wp:html -->"""
 
-    create_post(title, final_html, save_as_draft=True)
+    create_post(title, final_html, save_as_draft=save_as_draft)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="워드프레스 자동 업로드 스크립트 (코다리 부장 🐟)")
     parser.add_argument("files", nargs="*", help="업로드할 HTML 파일 경로(들)")
+    parser.add_argument("--publish", action="store_true", help="임시글이 아닌 바로 발행 상태로 업로드")
     args = parser.parse_args()
     
     if not args.files:
         print("💡 사용법: python wp_auto_upload.py [파일명1.html] [파일명2.html] ...")
-        print("💡 예시: python wp_auto_upload.py article_parkgolf.html")
+        print("💡 예시: python wp_auto_upload.py article_parkgolf.html --publish")
     else:
+        save_as_draft = not args.publish
         for f in args.files:
-            process_and_upload(f)
+            process_and_upload(f, save_as_draft=save_as_draft)
