@@ -273,81 +273,113 @@ if st.session_state.domain_results_data:
     disc = st.session_state.domain_results_data['discovered']
     for u in disc: st.markdown(f"- 🔗 {u}")
 
-# Pipeline 3: 랜딩페이지 이미지 전체화면 캡처기 (벤치마킹 타겟 URL 스크린샷 전용)
+# Pipeline 3: 스마트 랜딩페이지 캡쳐기 (Dual PC/Mobile)
 st.write("---")
-st.header("📸 랜딩페이지 전체화면 캡처기")
-p_ref_url = st.text_input("🔗 벤치마킹 타겟 URL (전체화면 캡처 용도)")
-capture_button = st.button("📸 랜딩페이지 스크린샷 캡처", width="stretch")
+st.header("📸 스마트 랜딩페이지 캡쳐기")
+st.markdown("PC 버전과 모바일 버전(아이폰 뷰)의 랜딩페이지를 동시에 확인하고 한 번에 캡처하세요.")
 
-if capture_button and p_ref_url:
-    import subprocess
-    import time
-    import os
-    import tempfile
-    
-    # 스크립트 위치 절대화
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    helper_path = os.path.join(script_dir, "vision_playwright_helper.py")
-    
-    # 파일을 시스템 임시 폴더(tempfile)에 저장하여 권한 이슈 회피
-    out_img_name = f"stitch_ref_{int(time.time())}.jpg"
-    out_img_path = os.path.join(tempfile.gettempdir(), out_img_name)
-    
-    with st.spinner("📸 랜딩페이지 전체 캡처 중... (약 20~40초 소요)"):
-        try:
-            # 절대 경로 및 현재 Python 실행 파일(sys.executable)을 명시하여 실행
-            res = subprocess.run([sys.executable, helper_path, p_ref_url, out_img_path], capture_output=True, text=True)
-            
-            if res.returncode == 0 and os.path.exists(out_img_path):
-                st.session_state.stitch_ref_image_path = out_img_path
-                st.success(f"✅ 캡처 완료! (경로: {out_img_name})")
-            else:
-                st.error(f"❌ 캡처 실패 (Exit Code: {res.returncode})")
-                if res.stdout:
-                    st.info("💡 실행 로그(Stdout): " + res.stdout)
-                if res.stderr:
-                    st.warning("⚠️ 에러 로그(Stderr): " + res.stderr)
-                if not os.path.exists(out_img_path):
-                    st.info("파일이 생성되지 않았습니다. 브라우저 구동 또는 권한 이슈가 의심됩니다.")
-        except Exception as e:
-            st.error(f"🚀 실행기 치명적 오류: {e}")
+if 'smart_pc_img' not in st.session_state: st.session_state.smart_pc_img = None
+if 'smart_mob_img' not in st.session_state: st.session_state.smart_mob_img = None
 
-if st.session_state.get('stitch_ref_image_path') and os.path.exists(st.session_state.stitch_ref_image_path):
-    st.image(st.session_state.stitch_ref_image_path, caption="캡처된 전체화면 이미지", use_container_width=True)
+col_pre1, col_pre2 = st.columns([3, 1])
+with col_pre1:
+    mobile_preview_url = st.text_input("🔗 분석 및 캡처할 랜딩페이지 URL 입력 (Capture)", key="mobile_url_preview")
+with col_pre2:
+    st.markdown("<br>", unsafe_allow_html=True)
+    scan_start_button = st.button("🚀 랜딩페이지 스캔 시작", width="stretch")
 
-dummy_str = '''
-# [보관용] Google Stitch 전용 기획 프롬프트 생성기 (숨김 처리)
-# Pipeline 3: Stitch Prompt Generator
-st.write("---")
-st.header("🎨 Google Stitch 전용 기획 프롬프트 생성기")
-col_p1, col_p2 = st.columns([1, 1])
-with col_p1:
-    p_ref_url = st.text_input("🔗 벤치마킹 타겟 URL")
-    p_copy = st.text_area("✍️ 핵심 카피")
-with col_p2:
-    p_keywords = st.text_input("🔑 핵심 키워드")
-    p_persona = st.text_area("🗣️ 페르소나")
+if mobile_preview_url:
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_pc, col_mob = st.columns([1, 1])
 
-stitch_button = st.button("🔥 스티치 마스터 프롬프트 파이프라인 가동", width="stretch")
+    with col_pc:
+        st.markdown("<h4 style='text-align: center; color: #334155;'>💻 원래 랜딩 (PC 버전)</h4>", unsafe_allow_html=True)
+        components.html(
+            f"""
+            <div style="display: flex; justify-content: center; padding: 10px;">
+                <div style="width: 100%; height: 812px; border: 4px solid #cbd5e1; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); overflow: hidden; background: #fff;">
+                    <iframe src="{mobile_preview_url}" width="100%" height="100%" frameborder="0" style="margin: 0; padding: 0;"></iframe>
+                </div>
+            </div>
+            """,
+            height=850
+        )
 
-if stitch_button and p_ref_url:
-    import subprocess
-    import time
-    out_img = f"stitch_reference_temp_{int(time.time())}.jpg"
-    subprocess.run([sys.executable, "vision_playwright_helper.py", p_ref_url, out_img])
-    st.session_state.stitch_ref_image_path = out_img
-    st.session_state.final_stitch_prompt = f"Stitch Prompt for {p_ref_url} with copy: {p_copy}" # 단순화
+    with col_mob:
+        st.markdown("<h4 style='text-align: center; color: #1e293b;'>📱 타겟 맞춤 (모바일 버전)</h4>", unsafe_allow_html=True)
+        with st.spinner("모바일 엔진 가동 중..."):
+            try:
+                import requests
+                import html
+                headers = {
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1',
+                    'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7'
+                }
+                res = requests.get(mobile_preview_url, headers=headers, timeout=10)
+                res.encoding = res.apparent_encoding
+                html_content = res.text
+                head_idx = html_content.lower().find('<head>')
+                base_tag = f'<base href="{mobile_preview_url}">'
+                js_mock = "<script>Object.defineProperty(navigator, 'userAgent', {get: function(){return 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1';}});</script>"
+                if head_idx != -1: html_content = html_content[:head_idx+6] + base_tag + js_mock + html_content[head_idx+6:]
+                else: html_content = base_tag + js_mock + html_content
+                safe_srcdoc = html.escape(html_content, quote=True)
+                components.html(
+                    f"""
+                    <div style="display: flex; justify-content: center; padding: 10px;">
+                        <div style="width: 375px; height: 812px; border: 14px solid #1e293b; border-radius: 36px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3); overflow: hidden; position: relative; background: #fff;">
+                            <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 140px; height: 28px; background: #1e293b; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; z-index: 10;"></div>
+                            <iframe srcdoc="{safe_srcdoc}" width="100%" height="100%" frameborder="0" style="margin: 0; padding: 0;"></iframe>
+                        </div>
+                    </div>
+                    """,
+                    height=850
+                )
+            except Exception as e: st.error(f"⚠️ 모바일 로드 오류: {e}")
 
-if st.session_state.get('final_stitch_prompt'):
-    st.success("✅ 프롬프트가 준비되었습니다.")
-    col_r1, col_r2 = st.columns([1, 1])
-    with col_r1:
-        if os.path.exists(st.session_state.stitch_ref_image_path):
-            st.image(st.session_state.stitch_ref_image_path, caption="뼈대 이미지", width="stretch")
-    with col_r2:
-        st.code(st.session_state.final_stitch_prompt)
+    # 스마트 듀얼 캡처 로직
+    st.markdown("<br>", unsafe_allow_html=True)
+    smart_capture_button = st.button("📸 랜딩 페이지 스크린샷 캡처 (PC & Mobile 자동 저장)", width="stretch")
 
-'''
+    if smart_capture_button:
+        import subprocess
+        from urllib.parse import urlparse
+        
+        parsed_url = urlparse(mobile_preview_url)
+        domain = parsed_url.netloc
+        if domain.startswith("www."): domain = domain[4:]
+        domain_name = domain.split('.')[0]
+        if not domain_name: domain_name = "captured_site"
+        
+        pc_out = f"{domain_name}_PC.jpg"
+        mob_out = f"{domain_name}_Mobile.jpg"
+        
+        with st.status("🚀 스마트 캡처 엔진 가동 중...", expanded=True) as status:
+            try:
+                # 스크립트 위치 절대화
+                script_dir = os.path.dirname(os.path.abspath(__file__))
+                helper_path = os.path.join(script_dir, "vision_playwright_helper.py")
+                
+                status.write(f"🖥️ PC 버전 캡처 중... ({pc_out})")
+                subprocess.run([sys.executable, helper_path, mobile_preview_url, pc_out, "1280", "1080", "false"], check=True)
+                status.write(f"📱 모바일 버전 캡처 중... ({mob_out})")
+                subprocess.run([sys.executable, helper_path, mobile_preview_url, mob_out, "375", "812", "true"], check=True)
+                status.update(label="✅ 듀얼 캡처 완료!", state="complete")
+                st.session_state.smart_pc_img = pc_out
+                st.session_state.smart_mob_img = mob_out
+                st.balloons()
+            except Exception as e:
+                status.update(label="❌ 캡처 실패", state="error")
+                st.error(f"오류: {e}")
+
+    if st.session_state.smart_pc_img or st.session_state.smart_mob_img:
+        r_col1, r_col2 = st.columns(2)
+        with r_col1:
+            if st.session_state.smart_pc_img and os.path.exists(st.session_state.smart_pc_img):
+                st.image(st.session_state.smart_pc_img, caption=f"PC 캡처: {st.session_state.smart_pc_img}")
+        with r_col2:
+            if st.session_state.smart_mob_img and os.path.exists(st.session_state.smart_mob_img):
+                st.image(st.session_state.smart_mob_img, caption=f"Mobile 캡처: {st.session_state.smart_mob_img}")
 
 # ===============================
 # ★ 6번 파이프라인 (랜딩페이지 공통점 분석기) 영역
