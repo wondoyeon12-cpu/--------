@@ -53,10 +53,13 @@ def scrape_contents(items):
                 results.append(data)
     return results
 
-def generate_briefing_with_openai(data):
+def generate_briefing_with_openai(data, top_keywords_data=None):
     client = OpenAI(api_key=OPENAI_API_KEY)
     context = ""
     for d in data: context += f"\n[URL: {d['url']}]\n[Content]: {d['content']}\n"
+    
+    keyword_context = ""
+    # AI에게 키워드를 선별하게 하는 로직은 임시 제외 (월간 검색수 상위 50개 단순 출력)
     
     prompt = f"""당신은 10년차 수석 퍼포먼스 마케터이자 카피라이터입니다. 아래 수집된 경쟁사 랜딩페이지 내용들을 심층 분석하여 '한국어'로 된 비밀 기획 보고서를 작성하세요.
     모든 분석 내용과 카피 제안은 반드시 한국어로 작성해야 합니다.
@@ -67,7 +70,6 @@ def generate_briefing_with_openai(data):
     - target_audience: 단순 나이대가 아닌, 타겟의 심리적 고통(Pain Point), 구매 동기, 행동 패턴, 라이프스타일까지 포함한 심층 분석. 최소 4~5문장 이상 작성.
     - product_features: 성분명·함량·인증 등 구체적 수치와 차별화 이유를 포함한 핵심 특장점. 5개 이상 배열로 작성. 각 항목은 '~mg', '~특허', '~인증' 등 구체성 있게 작성.
     - competitor_analysis: 크롤링된 내용에서 각 경쟁사를 식별하고, 각 브랜드별로 [고유 강점(USP), 마케팅 전술, 메인 타겟층, 약점/공략 포인트]를 구분하여 비교 분석. 최소 300자 이상.
-    - recommended_keywords: SEO 및 퍼포먼스 광고에 활용 가능한 키워드 정확히 50개. 단순 단어가 아닌 롱테일 키워드 포함.
     - hooking_copy: 10개 중 마지막 2개는 클릭률 극대화를 위해 윤리적 한계를 살짝 밀어붙이는 '초강력 도발형' 카피로 작성. 나머지 8개는 감성·비포애프터·혜택 중심으로 다양하게.
     
     [출력 JSON 구조]
@@ -76,12 +78,12 @@ def generate_briefing_with_openai(data):
       "target_audience": "심층 타겟층 분석 (4-5문장 이상)",
       "product_features": ["특장점1 (수치/성분 포함)", "특장점2", ...],
       "competitor_analysis": "경쟁사별 포지셔닝 심층 비교 (300자 이상)",
-      "recommended_keywords": ["키워드1", "키워드2", ... (정확히 50개)],
       "hooking_copy": ["카피1", ... "카피8", "💥극강 도발 카피9", "💥극강 도발 카피10"]
     }}
     
     [크롤링 데이터]
     {context}
+    {keyword_context}
     """
     try:
         response = client.chat.completions.create(
@@ -89,7 +91,13 @@ def generate_briefing_with_openai(data):
             messages=[{"role": "user", "content": prompt}],
             response_format={"type": "json_object"}
         )
-        return json.loads(response.choices[0].message.content)
+        res_json = json.loads(response.choices[0].message.content)
+        
+        # 네이버 API 검색 결과(Top 50)를 바로 전달
+        if top_keywords_data:
+            res_json['recommended_keywords_data'] = top_keywords_data
+            
+        return res_json
     except Exception as e:
         return {"error": str(e)}
 
@@ -135,8 +143,11 @@ if run_button and keyword_input:
     import importlib
     import google_ads_extractor
     import meta_ads_extractor
+    import naver_search_ad
+    import pandas as pd
     importlib.reload(google_ads_extractor)
     importlib.reload(meta_ads_extractor)
+    importlib.reload(naver_search_ad)
     
     st.info(f"🚀 '{keyword_input}' 스파이 파이프라인 가동!")
     
@@ -168,7 +179,14 @@ if run_button and keyword_input:
             # 3. 데이터 분석
             st.write(f"↳ 총 {len(all_res)}개 랜딩 중 상위 7개 심층 분석 중...")
             scraped = scrape_contents(all_res[:7])
-            briefing = generate_briefing_with_openai(scraped)
+            
+            # 네이버 검색광고 API 연동
+            st.write(f"↳ 네이버 검색광고 API 연동: '{keyword_input}' 연관 키워드 (모바일 검색수 Top 50) 추출 중...")
+            top_keywords_data = naver_search_ad.get_top_related_keywords(keyword_input, limit=50)
+            st.write(f"   ✅ 실무 연관 키워드 50개 확보 완료!")
+            
+            st.write("↳ AI 기획 브리핑 분석 중...")
+            briefing = generate_briefing_with_openai(scraped, top_keywords_data=top_keywords_data)
             
             st.session_state.spy_results = {
                 "keyword_input": keyword_input, 
@@ -243,13 +261,62 @@ if st.session_state.spy_results:
     st.markdown(f"<div style='background-color:#fefce8; padding:25px; border-radius:12px; border:1px solid #fde047; font-size:15px; color:#422006; white-space: pre-wrap;'>{briefing.get('competitor_analysis', '')}</div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("### 🔑 실무진 추천 핵심 키워드 (50선)")
-    keywords = briefing.get('recommended_keywords', [])
-    if keywords:
-        kw_html = "<div style='background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px dashed #cbd5e1;'>"
-        for k in keywords: kw_html += f"<span class='keyword-badge'>#{k}</span>"
-        kw_html += "</div>"
-        st.markdown(kw_html, unsafe_allow_html=True)
+    st.markdown("### 🔑 실무진 추천 핵심 키워드 (모바일 검색수 Top 50)")
+    st.markdown("🔍 네이버 검색광고 API의 실제 데이터를 기반으로 모바일 검색수가 가장 높은 50개의 키워드입니다.")
+    
+    keyword_data_list = briefing.get('recommended_keywords_data', [])
+    if keyword_data_list:
+        import pandas as pd
+        # 데이터프레임으로 변환
+        df_kws = pd.DataFrame(keyword_data_list)
+        df_kws = df_kws.rename(columns={
+            'relKeyword': '키워드',
+            'pcQcCnt': '월간검색수(PC)',
+            'mobileQcCnt': '월간검색수(모바일)',
+            'pcClkCnt': '월평균클릭수(PC)',
+            'mobileClkCnt': '월평균클릭수(모바일)',
+            'pcCtr': '월평균클릭률(PC)',
+            'mobileCtr': '월평균클릭률(모바일)',
+            'compIdx': '경쟁정도',
+            'plAvgDepth': '월평균노출광고수'
+        })
+        # 보여줄 컬럼 순서 지정 (모바일 -> PC 순, 총 검색수 제거)
+        cols_to_keep = [
+            '키워드', '월간검색수(모바일)', '월간검색수(PC)',
+            '월평균클릭수(모바일)', '월평균클릭수(PC)', 
+            '월평균클릭률(모바일)', '월평균클릭률(PC)',
+            '경쟁정도', '월평균노출광고수'
+        ]
+        df_kws = df_kws[[c for c in cols_to_keep if c in df_kws.columns]]
+        
+        # 정수형 컬럼 포맷팅 (천 단위 콤마)
+        int_cols = ['월간검색수(모바일)', '월간검색수(PC)', '월평균노출광고수']
+        for col in int_cols:
+            if col in df_kws.columns:
+                df_kws[col] = df_kws[col].apply(lambda x: f"{int(x):,}" if pd.notnull(x) and isinstance(x, (int, float)) else x)
+        
+        # 실수형 컬럼 포맷팅 (월평균클릭수) - 소수점 1자리까지 표시
+        float_cols = ['월평균클릭수(모바일)', '월평균클릭수(PC)']
+        for col in float_cols:
+            if col in df_kws.columns:
+                df_kws[col] = df_kws[col].apply(lambda x: f"{float(x):,.1f}" if pd.notnull(x) and isinstance(x, (int, float)) else x)
+        
+        # 클릭률 포맷팅 (소수점 2자리)
+        ctr_cols = ['월평균클릭률(모바일)', '월평균클릭률(PC)']
+        for col in ctr_cols:
+            if col in df_kws.columns:
+                df_kws[col] = df_kws[col].apply(lambda x: f"{float(x):.2f}%" if pd.notnull(x) and isinstance(x, (int, float)) else x)
+        
+        # 표 렌더링
+        st.dataframe(df_kws, use_container_width=True, hide_index=True)
+    else:
+        # 구버전 호환 (데이터가 없을 경우)
+        keywords = briefing.get('recommended_keywords', [])
+        if keywords:
+            kw_html = "<div style='background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px dashed #cbd5e1;'>"
+            for k in keywords: kw_html += f"<span class='keyword-badge'>#{k}</span>"
+            kw_html += "</div>"
+            st.markdown(kw_html, unsafe_allow_html=True)
         
     st.markdown("<hr style='margin:30px 0;'>", unsafe_allow_html=True)
     st.markdown("### ✍️ 이거면 무조건 누른다! (극강의 후킹 카피라이팅 10선)")
@@ -585,16 +652,71 @@ if st.session_state.pattern_result:
 
     with tab2:
         st.markdown("### 🔑 공통 키워드 (등장 빈도 순)")
+        
+        # 네이버 검색광고 API 인기 키워드 추출 (1번 파이프라인 연동)
+        naver_kws = set()
+        kw_data = []
+        if 'spy_results' in st.session_state and st.session_state.spy_results:
+            briefing_data = st.session_state.spy_results.get("briefing", {})
+            kw_data = briefing_data.get("recommended_keywords_data", [])
+            naver_kws = {item.get("relKeyword", "").strip().lower() for item in kw_data if item.get("relKeyword")}
+            
+        # 업로드한 모든 이미지의 전체 키워드 모으기
+        all_extracted_keywords = set()
+        for pa in pr.get("_page_analyses", []):
+            for kw_item in pa.get("keywords", []):
+                if isinstance(kw_item, str):
+                    all_extracted_keywords.add(kw_item.strip().lower())
+                    
+        # 네이버 Top 50 중 이미지 전체 키워드에 포함된 녀석들 골라내기
+        matched_naver_items = []
+        for item in kw_data:
+            rel_kw = item.get("relKeyword", "")
+            if rel_kw and rel_kw.strip().lower() in all_extracted_keywords:
+                matched_naver_items.append(item)
+                
+        # 교차 매칭된 네이버 인기 키워드 리스트 UI 노출
+        if matched_naver_items:
+            st.markdown("#### 🎯 경쟁사 랜딩 포착 네이버 인기 키워드 (Top 50 매칭)")
+            st.markdown("경쟁사 랜딩페이지 이미지 전체에서 추출한 키워드 중, 실제 네이버 검색량이 높은 핵심 키워드 리스트입니다.")
+            
+            kw_badges_html = "<div style='background-color: #fff7ed; padding: 20px; border-radius: 12px; border: 1px solid #ffedd5; margin-bottom: 25px;'>"
+            for item in matched_naver_items:
+                kw_name = item.get("relKeyword", "")
+                m_search = item.get("mobileQcCnt", 0)
+                try:
+                    m_search_str = f"{int(m_search):,}"
+                except:
+                    m_search_str = str(m_search)
+                kw_badges_html += f"<span style='display: inline-block; background-color: #ffedd5; color: #ea580c; padding: 6px 12px; border-radius: 8px; margin: 4px; font-size: 13px; font-weight: bold; border: 1px solid #fed7aa;'>#{kw_name} <span style='font-size: 11px; font-weight: normal; color: #f97316;'>(📱 {m_search_str})</span></span>"
+            kw_badges_html += "</div>"
+            st.markdown(kw_badges_html, unsafe_allow_html=True)
+            st.markdown("---")
+        elif kw_data:
+            st.info("💡 업로드된 이미지 텍스트 중 네이버 Top 50 검색어와 매칭되는 키워드가 없습니다.")
+        else:
+            st.info("💡 1번 파이프라인(원스톱 스파이)을 먼저 실행해 주시면, 네이버 검색광고 API 실시간 데이터와 매칭된 핵심 키워드 리스트를 분석해 드립니다!")
+            
         kws = sorted(pr.get("common_keywords", []), key=lambda x: x.get("frequency", 0), reverse=True)
         for kw in kws:
             freq = kw.get("frequency", 0)
             total = len(pr.get("_page_analyses", []))
             pct = int((freq / total) * 100) if total else 0
             bar_color = "#ef4444" if pct == 100 else ("#f97316" if pct >= 60 else "#3b82f6")
+            
+            # 중복/매칭 키워드 분석
+            keyword_text = kw.get("keyword","").strip()
+            is_matched = keyword_text.lower() in naver_kws
+            
+            # 매칭 뱃지 HTML 정의
+            badge_html = ""
+            if is_matched:
+                badge_html = "<span style='background-color: #ffedd5; color: #ea580c; border: 1px solid #fed7aa; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-left: 8px;'>🔥 네이버 인기 키워드 매칭</span>"
+                
             st.markdown(f"""
             <div style='background:white; padding:14px 18px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:10px;'>
                 <div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;'>
-                    <span style='font-weight:700; font-size:15px;'>#{kw.get("keyword","")}</span>
+                    <span style='font-weight:700; font-size:15px;'>#{keyword_text}{badge_html}</span>
                     <span style='background:{bar_color}20; color:{bar_color}; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:bold;'>{freq}/{total}개 페이지</span>
                 </div>
                 <div style='background:#f1f5f9; border-radius:4px; height:6px; margin-bottom:8px;'>
