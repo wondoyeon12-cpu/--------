@@ -1,10 +1,16 @@
 import streamlit as st
 import streamlit.components.v1 as components
 import sys
+import os
+
+# 현재 파일이 있는 디렉토리를 모듈 검색 경로에 추가하여 배포 시의 import 에러 해결
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.insert(0, current_dir)
+
 import requests
 import concurrent.futures
 from bs4 import BeautifulSoup
-import os
 import json
 import time
 import base64
