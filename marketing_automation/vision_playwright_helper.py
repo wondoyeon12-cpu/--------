@@ -25,7 +25,17 @@ def main():
         with sync_playwright() as p:
             browser = None
             try:
-                browser = p.chromium.launch(headless=True)
+                try:
+                    browser = p.chromium.launch(headless=True)
+                except Exception as launch_err:
+                    print(f"Initial Chromium launch failed: {launch_err}. Attempting to install Chromium...")
+                    import subprocess
+                    try:
+                        subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+                    except Exception as inst_err:
+                        print(f"Playwright install failed: {inst_err}")
+                        raise inst_err
+                    browser = p.chromium.launch(headless=True)
                 
                 # Configure context based on mobile flag
                 if is_mobile:
